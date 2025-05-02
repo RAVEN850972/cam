@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM для монтажа кондиционеров - Дашборд</title>
+    <!-- Подключаем Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Кастомные стили -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .month-selector {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em;
+        }
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.error {
+            background-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Тост-уведомление -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Навигационное меню -->
+    <div class="flex h-screen">
+        <!-- Боковая панель -->
+        <div class="sidebar fixed inset-y-0 left-0 w-64 bg-blue-800 text-white p-4 md:static md:translate-x-0 sidebar-hidden" id="sidebar">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">CRM Кондиционеры</h2>
+                <button class="md:hidden text-white" onclick="toggleSidebar()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-2"><a href="#" class="block p-2 bg-blue-900 rounded">Дашборд</a></li>
+                    <li class="mb-2"><a href="/orders" class="block p-2 hover:bg-blue-700 rounded">Заказы</a></li>
+                    <li class="mb-2"><a href="/services" class="block p-2 hover:bg-blue-700 rounded">Услуги</a></li>
+                    <li class="mb-2"><a href="/clients" class="block p-2 hover:bg-blue-700 rounded">Клиенты</a></li>
+                    <li class="mb-2"><a href="/employees" class="block p-2 hover:bg-blue-700 rounded">Сотрудники</a></li>
+                    <li class="mb-2"><a href="/finance" class="block p-2 hover:bg-blue-700 rounded">Финансы</a></li>
+                    <li class="mb-2"><a href="/export" class="block p-2 hover:bg-blue-700 rounded">Экспорт</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="flex-1 p-4 md:p-6 overflow-auto">
+            <!-- Мобильная кнопка меню -->
+            <button class="md:hidden mb-4 p-2 bg-blue-800 text-white rounded" onclick="toggleSidebar()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <h1 class="text-2xl font-bold mb-6">Дашборд</h1>
+
+            <!-- Выбор месяца -->
+            <div class="mb-6">
+                <label for="month" class="block text-sm font-medium text-gray-700">Выберите месяц:</label>
+                <select id="month" class="month-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchDashboardData()">
+                    <!-- Опции будут добавлены через JS -->
+                </select>
+            </div>
+
+            <!-- Карточки с метриками -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="card bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-sm font-medium text-gray-500">Выполненные заказы</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="completed-orders">0</p>
+                </div>
+                <div class="card bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-sm font-medium text-gray-500">Заказы в работе</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="in-progress-orders">0</p>
+                </div>
+                <div class="card bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-sm font-medium text-gray-500">Выручка</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="revenue">0 ₽</p>
+                </div>
+                <div class="card bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-sm font-medium text-gray-500">Прибыль</h3>
+                    <p class="text-2xl font-bold text-gray-900" id="profit">0 ₽</p>
+                </div>
+            </div>
+
+            <!-- Популярные услуги -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 class="text-lg font-semibold mb-4">Популярные услуги</h2>
+                <div id="popular-services" class="space-y-4">
+                    <!-- Список будет заполнен через JS -->
+                </div>
+            </div>
+
+            <!-- Топ монтажников -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h2 class="text-lg font-semibold mb-4">Топ монтажников</h2>
+                <div id="top-installers" class="space-y-4">
+                    <!-- Список будет заполнен через JS -->
+                </div>
+            </div>
+
+            <!-- График выручки и прибыли по месяцам -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-lg font-semibold mb-4">Выручка и прибыль по месяцам</h2>
+                <canvas id="revenue-profit-chart" class="w-full h-64"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Chart.js через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- Кастомный JavaScript -->
+    <script>
+        // Текущий месяц
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+        // Переключение боковой панели
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-hidden');
+        }
+
+        // Показ уведомления
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show', type);
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Форматирование чисел с разделителями тысяч
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+
+        // Заполнение селектора месяцев
+        function populateMonthSelector() {
+            const select = document.getElementById('month');
+            const currentYear = new Date().getFullYear();
+            const months = [
+                'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+            ];
+            for (let year = currentYear; year >= currentYear - 2; year--) {
+                for (let month = 11; month >= 0; month--) {
+                    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = `${months[month]} ${year}`;
+                    if (value === currentMonth) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                }
+            }
+        }
+
+        // Получение данных дашборда через API
+        async function fetchDashboardData() {
+            const month = document.getElementById('month').value;
+            try {
+                const response = await fetch(`/api/dashboard?month=${month}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+                const data = await response.json();
+
+                // Обновляем карточки
+                document.getElementById('completed-orders').textContent = data.completed_orders || 0;
+                document.getElementById('in-progress-orders').textContent = data.in_progress_orders || 0;
+                document.getElementById('revenue').textContent = `${formatNumber(Math.round(data.revenue || 0))} ₽`;
+                document.getElementById('profit').textContent = `${formatNumber(Math.round(data.profit || 0))} ₽`;
+
+                // Обновляем популярные услуги
+                const servicesContainer = document.getElementById('popular-services');
+                servicesContainer.innerHTML = '';
+                (data.popular_services || []).forEach(service => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between';
+                    div.innerHTML = `
+                        <span>${service.name}</span>
+                        <span>${service.count} заказов</span>
+                    `;
+                    servicesContainer.appendChild(div);
+                });
+
+                // Обновляем топ монтажников
+                const installersContainer = document.getElementById('top-installers');
+                installersContainer.innerHTML = '';
+                (data.top_installers || []).forEach(installer => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between';
+                    div.innerHTML = `
+                        <span>${installer.name}</span>
+                        <span>${installer.orders} заказов</span>
+                    `;
+                    installersContainer.appendChild(div);
+                });
+
+                // Обновляем график
+                updateChart(data.monthly_data || []);
+            } catch (error) {
+                showToast('Ошибка при загрузке данных: ' + error.message);
+                console.error('Ошибка при загрузке данных:', error);
+            }
+        }
+
+        // Инициализация графика
+        let chart;
+        function updateChart(monthlyData) {
+            const ctx = document.getElementById('revenue-profit-chart').getContext('2d');
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.map(d => d.month),
+                    datasets: [
+                        {
+                            label: 'Выручка',
+                            data: monthlyData.map(d => d.revenue),
+                            borderColor: 'rgb(59, 130, 246)',
+                            fill: false
+                        },
+                        {
+                            label: 'Прибыль',
+                            data: monthlyData.map(d => d.profit),
+                            borderColor: 'rgb(16, 185, 129)',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Сумма (₽)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Месяц'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            populateMonthSelector();
+            fetchDashboardData();
+        });
+    </script>
+</body>
+</html>

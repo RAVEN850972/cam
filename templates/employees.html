@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM для монтажа кондиционеров - Сотрудники</title>
+    <!-- Подключаем Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Кастомные стили -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .modal.show {
+            display: block;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+        }
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            background-color: #10b981;
+        }
+        .toast.error {
+            background-color: #ef4444;
+        }
+        .type-selector {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+        .payment-history-modal {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Тост-уведомление -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Модальное окно для добавления/редактирования сотрудника -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modalTitle" class="text-lg font-semibold">Добавить сотрудника</h2>
+                <button onclick="closeModal('employeeModal')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalForm" class="space-y-4">
+                <input type="hidden" id="employeeId">
+                <div>
+                    <label for="employeeName" class="block text-sm font-medium text-gray-700">Имя</label>
+                    <input type="text" id="employeeName" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="employeePhone" class="block text-sm font-medium text-gray-700">Телефон</label>
+                    <input type="text" id="employeePhone" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="employeeType" class="block text-sm font-medium text-gray-700">Тип сотрудника</label>
+                    <select id="employeeType" class="type-selector mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required onchange="toggleBaseSalaryField()">
+                        <option value="менеджер">Менеджер</option>
+                        <option value="монтажник">Монтажник</option>
+                    </select>
+                </div>
+                <div id="baseSalaryField">
+                    <label for="baseSalary" class="block text-sm font-medium text-gray-700">Базовая зарплата (₽)</label>
+                    <input type="number" id="baseSalary" step="0.01" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="orderRate" class="block text-sm font-medium text-gray-700">Ставка за заказ (₽)</label>
+                    <input type="number" id="orderRate" step="0.01" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="commissionRate" class="block text-sm font-medium text-gray-700">Комиссия от доп. услуг (%)</label>
+                    <input type="number" id="commissionRate" step="0.01" min="0" max="100" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button onclick="closeModal('employeeModal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Отмена</button>
+                    <button onclick="saveEmployee()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для начисления выплаты -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Начислить выплату</h2>
+                <button onclick="closeModal('paymentModal')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="paymentEmployeeId">
+                <div>
+                    <label for="paymentAmount" class="block text-sm font-medium text-gray-700">Сумма (₽)</label>
+                    <input type="number" id="paymentAmount" step="0.01" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="paymentDescription" class="block text-sm font-medium text-gray-700">Описание</label>
+                    <input type="text" id="paymentDescription" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button onclick="closeModal('paymentModal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Отмена</button>
+                    <button onclick="makePayment()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Начислить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для наложения штрафа -->
+    <div id="fineModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">Наложить штраф</h2>
+                <button onclick="closeModal('fineModal')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="hidden" id="fineEmployeeId">
+                <div>
+                    <label for="fineAmount" class="block text-sm font-medium text-gray-700">Сумма (₽)</label>
+                    <input type="number" id="fineAmount" step="0.01" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
+                </div>
+                <div>
+                    <label for="fineDescription" class="block text-sm font-medium text-gray-700">Описание</label>
+                    <input type="text" id="fineDescription" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button onclick="closeModal('fineModal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Отмена</button>
+                    <button onclick="imposeFine()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Наложить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для истории платежей -->
+    <div id="paymentHistoryModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold">История платежей</h2>
+                <button onclick="closeModal('paymentHistoryModal')" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="payment-history-modal">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Сумма (₽)</th>
+                            <th>Описание</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentHistoryTable">
+                        <!-- Данные будут заполнены через JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeModal('paymentHistoryModal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навигационное меню -->
+    <div class="flex h-screen">
+        <!-- Боковая панель -->
+        <div class="sidebar fixed inset-y-0 left-0 w-64 bg-blue-800 text-white p-4 md:static md:translate-x-0 sidebar-hidden" id="sidebar">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">CRM Кондиционеры</h2>
+                <button class="md:hidden text-white" onclick="toggleSidebar()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-2"><a href="/" class="block p-2 hover:bg-blue-700 rounded">Дашборд</a></li>
+                    <li class="mb-2"><a href="/orders" class="block p-2 hover:bg-blue-700 rounded">Заказы</a></li>
+                    <li class="mb-2"><a href="/services" class="block p-2 hover:bg-blue-700 rounded">Услуги</a></li>
+                    <li class="mb-2"><a href="/clients" class="block p-2 hover:bg-blue-700 rounded">Клиенты</a></li>
+                    <li class="mb-2"><a href="#" class="block p-2 bg-blue-900 rounded">Сотрудники</a></li>
+                    <li class="mb-2"><a href="/finance" class="block p-2 hover:bg-blue-700 rounded">Финансы</a></li>
+                    <li class="mb-2"><a href="/export" class="block p-2 hover:bg-blue-700 rounded">Экспорт</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="flex-1 p-4 md:p-6 overflow-auto">
+            <!-- Мобильная кнопка меню -->
+            <button class="md:hidden mb-4 p-2 bg-blue-800 text-white rounded" onclick="toggleSidebar()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <h1 class="text-2xl font-bold mb-6">Сотрудники</h1>
+
+            <!-- Статистика -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6" id="employeeStats">
+                <!-- Карточки будут заполнены через JS -->
+            </div>
+
+            <!-- Фильтры и действия -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+                <div class="flex space-x-4">
+                    <div>
+                        <label for="typeFilter" class="block text-sm font-medium text-gray-700">Тип сотрудника:</label>
+                        <select id="typeFilter" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchEmployees()">
+                            <option value="Все">Все</option>
+                            <option value="менеджер">Менеджер</option>
+                            <option value="монтажник">Монтажник</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="monthFilter" class="block text-sm font-medium text-gray-700">Месяц:</label>
+                        <input type="month" id="monthFilter" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" value="2025-05" onchange="fetchEmployees()">
+                    </div>
+                </div>
+                <button onclick="openAddEmployeeModal()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Добавить сотрудника</button>
+            </div>
+
+            <!-- Таблица сотрудников -->
+            <div class="bg-white p-6 rounded-lg shadow overflow-x-auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Телефон</th>
+                            <th>Тип</th>
+                            <th>Заказов</th>
+                            <th>Начислено (₽)</th>
+                            <th>Выплачено (₽)</th>
+                            <th>К выплате (₽)</th>
+                            <th>Дата добавления</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTable">
+                        <!-- Данные будут заполнены через JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кастомный JavaScript -->
+    <script>
+        // Переключение боковой панели
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-hidden');
+        }
+
+        // Показ уведомления
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show', type);
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Переключение видимости поля базовой зарплаты
+        function toggleBaseSalaryField() {
+            const employeeType = document.getElementById('employeeType').value;
+            const baseSalaryField = document.getElementById('baseSalaryField');
+            baseSalaryField.style.display = employeeType === 'менеджер' ? 'block' : 'none';
+            if (employeeType !== 'менеджер') {
+                document.getElementById('baseSalary').value = '';
+            }
+        }
+
+        // Открытие модального окна для добавления сотрудника
+        function openAddEmployeeModal() {
+            document.getElementById('modalTitle').textContent = 'Добавить сотрудника';
+            document.getElementById('employeeId').value = '';
+            document.getElementById('employeeName').value = '';
+            document.getElementById('employeePhone').value = '';
+            document.getElementById('employeeType').value = 'менеджер';
+            document.getElementById('baseSalary').value = '';
+            document.getElementById('orderRate').value = '';
+            document.getElementById('commissionRate').value = '';
+            toggleBaseSalaryField();
+            document.getElementById('employeeModal').classList.add('show');
+        }
+
+        // Открытие модального окна для редактирования сотрудника
+        function openEditEmployeeModal(employee) {
+            document.getElementById('modalTitle').textContent = 'Редактировать сотрудника';
+            document.getElementById('employeeId').value = employee.id;
+            document.getElementById('employeeName').value = employee.name;
+            document.getElementById('employeePhone').value = employee.phone;
+            document.getElementById('employeeType').value = employee.employee_type;
+            document.getElementById('baseSalary').value = employee.base_salary || '';
+            document.getElementById('orderRate').value = employee.order_rate;
+            document.getElementById('commissionRate').value = employee.commission_rate * 100;
+            toggleBaseSalaryField();
+            document.getElementById('employeeModal').classList.add('show');
+        }
+
+        // Закрытие модального окна
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Сохранение сотрудника (добавление или обновление)
+        async function saveEmployee() {
+            const employeeId = document.getElementById('employeeId').value;
+            const name = document.getElementById('employeeName').value.trim();
+            const phone = document.getElementById('employeePhone').value.trim();
+            const employeeType = document.getElementById('employeeType').value;
+            const baseSalary = parseFloat(document.getElementById('baseSalary').value) || null;
+            const orderRate = parseFloat(document.getElementById('orderRate').value);
+            const commissionRate = parseFloat(document.getElementById('commissionRate').value) / 100;
+
+            if (!name || !phone || isNaN(orderRate) || orderRate < 0 || isNaN(commissionRate) || commissionRate < 0 || commissionRate > 1) {
+                showToast('Заполните все обязательные поля корректно. Комиссия должна быть от 0 до 100%.');
+                return;
+            }
+
+            if (!/^\+?[0-9]{10,12}$/.test(phone.replace(/\s/g, ''))) {
+                showToast('Неверный формат номера телефона');
+                return;
+            }
+
+            const employeeData = {
+                name,
+                phone: phone.replace(/\s/g, ''),
+                employee_type: employeeType,
+                base_salary: employeeType === 'менеджер' ? baseSalary : null,
+                order_rate: orderRate,
+                commission_rate: commissionRate
+            };
+            const method = employeeId ? 'PUT' : 'POST';
+            const url = employeeId ? `/api/employees/${employeeId}` : '/api/employees';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(employeeData)
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast(result.message, 'success');
+                    closeModal('employeeModal');
+                    fetchEmployees();
+                } else {
+                    showToast(result.message);
+                }
+            } catch (error) {
+                showToast('Ошибка при сохранении сотрудника: ' + error.message);
+            }
+        }
+
+        // Деактивация сотрудника
+        async function deactivateEmployee(employeeId) {
+            if (!confirm('Вы уверены, что хотите деактивировать этого сотрудника?')) return;
+
+            try {
+                const response = await fetch(`/api/employees/${employeeId}/deactivate`, {
+                    method: 'PUT'
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast(result.message, 'success');
+                    fetchEmployees();
+                } else {
+                    showToast(result.message);
+                }
+            } catch (error) {
+                showToast('Ошибка при деактивации сотрудника: ' + error.message);
+            }
+        }
+
+        // Открытие модального окна для начисления выплаты
+        function openPaymentModal(employeeId) {
+            document.getElementById('paymentEmployeeId').value = employeeId;
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentDescription').value = '';
+            document.getElementById('paymentModal').classList.add('show');
+        }
+
+        // Начисление выплаты
+        async function makePayment() {
+            const employeeId = document.getElementById('paymentEmployeeId').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const description = document.getElementById('paymentDescription').value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Сумма выплаты должна быть положительной');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/employees/${employeeId}/pay`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        amount: amount,
+                        description: description || undefined
+                    })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast(result.message, 'success');
+                    closeModal('paymentModal');
+                    fetchEmployees();
+                } else {
+                    showToast(result.message);
+                }
+            } catch (error) {
+                showToast('Ошибка при начислении выплаты: ' + error.message);
+            }
+        }
+
+        // Открытие модального окна для наложения штрафа
+        function openFineModal(employeeId) {
+            document.getElementById('fineEmployeeId').value = employeeId;
+            document.getElementById('fineAmount').value = '';
+            document.getElementById('fineDescription').value = '';
+            document.getElementById('fineModal').classList.add('show');
+        }
+
+        // Наложение штрафа
+        async function imposeFine() {
+            const employeeId = document.getElementById('fineEmployeeId').value;
+            const amount = parseFloat(document.getElementById('fineAmount').value);
+            const description = document.getElementById('fineDescription').value.trim();
+
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Сумма штрафа должна быть положительной');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/employees/${employeeId}/fine`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: new URLSearchParams({
+                        amount: amount,
+                        description: description || undefined
+                    })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    showToast(result.message, 'success');
+                    closeModal('fineModal');
+                    fetchEmployees();
+                } else {
+                    showToast(result.message);
+                }
+            } catch (error) {
+                showToast('Ошибка при наложении штрафа: ' + error.message);
+            }
+        }
+
+        // Открытие модального окна для истории платежей
+        function openPaymentHistoryModal(employee) {
+            const paymentHistoryTable = document.getElementById('paymentHistoryTable');
+            paymentHistoryTable.innerHTML = '';
+
+            employee.payment_history.forEach(payment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${payment.date}</td>
+                    <td>${payment.amount.toFixed(2)}</td>
+                    <td>${payment.description}</td>
+                `;
+                paymentHistoryTable.appendChild(row);
+            });
+
+            document.getElementById('paymentHistoryModal').classList.add('show');
+        }
+
+        // Получение списка сотрудников
+        async function fetchEmployees() {
+            const employeeType = document.getElementById('typeFilter').value;
+            const month = document.getElementById('monthFilter').value;
+
+            try {
+                const params = new URLSearchParams({
+                    type: employeeType,
+                    month: month
+                });
+                const response = await fetch(`/api/employees/list?${params}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+                const data = await response.json();
+
+                // Обновляем таблицу
+                const tableBody = document.getElementById('employeesTable');
+                tableBody.innerHTML = '';
+                data.employees.forEach(employee => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${employee.name}</td>
+                        <td>${employee.phone}</td>
+                        <td>${employee.employee_type.charAt(0).toUpperCase() + employee.employee_type.slice(1)}</td>
+                        <td>${employee.orders_count}</td>
+                        <td>${employee.salary.toFixed(2)}</td>
+                        <td>${employee.paid.toFixed(2)}</td>
+                        <td>${employee.to_pay.toFixed(2)}</td>
+                        <td>${employee.created_at}</td>
+                        <td>
+                            <button onclick='openEditEmployeeModal(${JSON.stringify(employee)})' class="text-blue-600 hover:underline mr-2">Редактировать</button>
+                            <button onclick="openPaymentModal(${employee.id})" class="text-green-600 hover:underline mr-2">Выплата</button>
+                            <button onclick="openFineModal(${employee.id})" class="text-red-600 hover:underline mr-2">Штраф</button>
+                            <button onclick="openPaymentHistoryModal(${JSON.stringify(employee)})" class="text-purple-600 hover:underline mr-2">История</button>
+                            <button onclick="deactivateEmployee(${employee.id})" class="text-gray-600 hover:underline">Деактивировать</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Обновляем статистику
+                const statsContainer = document.getElementById('employeeStats');
+                statsContainer.innerHTML = '';
+                const statsData = [
+                    { label: 'Всего сотрудников', value: data.stats.total_employees },
+                    { label: 'К выплате (₽)', value: data.stats.total_to_pay.toFixed(2) },
+                    { label: 'Выплачено (₽)', value: data.stats.total_paid.toFixed(2) }
+                ];
+                statsData.forEach(stat => {
+                    const card = document.createElement('div');
+                    card.className = 'card bg-white p-4 rounded-lg shadow';
+                    card.innerHTML = `
+                        <h3 class="text-sm font-medium text-gray-500">${stat.label}</h3>
+                        <p class="text-lg font-semibold text-gray-900">${stat.value}</p>
+                    `;
+                    statsContainer.appendChild(card);
+                });
+            } catch (error) {
+                showToast('Ошибка при загрузке данных: ' + error.message);
+            }
+        }
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchEmployees();
+        });
+    </script>
+</body>
+</html>

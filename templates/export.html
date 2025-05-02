@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM для монтажа кондиционеров - Экспорт</title>
+    <!-- Подключаем Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Кастомные стили -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .status-dot.новый { background-color: #f59e0b; }
+        .status-dot.в-работе { background-color: #3b82f6; }
+        .status-dot.завершен { background-color: #10b981; }
+        .status-dot.отменен { background-color: #ef4444; }
+        .type-selector, .format-selector {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.5em;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Навигационное меню -->
+    <div class="flex h-screen">
+        <!-- Боковая панель -->
+        <div class="sidebar fixed inset-y-0 left-0 w-64 bg-blue-800 text-white p-4 md:static md:translate-x-0 sidebar-hidden" id="sidebar">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">CRM Кондиционеры</h2>
+                <button class="md:hidden text-white" onclick="toggleSidebar()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-2"><a href="/" class="block p-2 hover:bg-blue-700 rounded">Дашборд</a></li>
+                    <li class="mb-2"><a href="/orders" class="block p-2 hover:bg-blue-700 rounded">Заказы</a></li>
+                    <li class="mb-2"><a href="/services" class="block p-2 hover:bg-blue-700 rounded">Услуги</a></li>
+                    <li class="mb-2"><a href="/clients" class="block p-2 hover:bg-blue-700 rounded">Клиенты</a></li>
+                    <li class="mb-2"><a href="/employees" class="block p-2 hover:bg-blue-700 rounded">Сотрудники</a></li>
+                    <li class="mb-2"><a href="/finance" class="block p-2 hover:bg-blue-700 rounded">Финансы</a></li>
+                    <li class="mb-2"><a href="#" class="block p-2 bg-blue-900 rounded">Экспорт</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="flex-1 p-4 md:p-6 overflow-auto">
+            <!-- Мобильная кнопка меню -->
+            <button class="md:hidden mb-4 p-2 bg-blue-800 text-white rounded" onclick="toggleSidebar()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <h1 class="text-2xl font-bold mb-6">Экспорт данных</h1>
+
+            <!-- Форма экспорта -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h3 class="text-lg font-semibold mb-4">Параметры экспорта</h3>
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                        <!-- Выбор типа данных -->
+                        <div>
+                            <label for="exportType" class="block text-sm font-medium text-gray-700">Тип данных:</label>
+                            <select id="exportType" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="updateFilters()">
+                                <option value="orders" {% if export_type == "orders" %}selected{% endif %}>Заказы</option>
+                                <option value="clients" {% if export_type == "clients" %}selected{% endif %}>Клиенты</option>
+                                <option value="services" {% if export_type == "services" %}selected{% endif %}>Услуги</option>
+                                <option value="employees" {% if export_type == "employees" %}selected{% endif %}>Сотрудники</option>
+                            </select>
+                        </div>
+
+                        <!-- Выбор формата -->
+                        <div>
+                            <label for="exportFormat" class="block text-sm font-medium text-gray-700">Формат:</label>
+                            <select id="exportFormat" class="format-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                <option value="csv">CSV</option>
+                                <option value="xlsx">Excel (XLSX)</option>
+                            </select>
+                        </div>
+
+                        <!-- Фильтры для заказов -->
+                        <div id="ordersFilters" class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                            <div>
+                                <label for="statusFilter" class="block text-sm font-medium text-gray-700">Статус:</label>
+                                <select id="statusFilter" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                                    <option value="">Все</option>
+                                    <option value="новый" {% if status_filter == "новый" %}selected{% endif %}>Новый</option>
+                                    <option value="в работе" {% if status_filter == "в работе" %}selected{% endif %}>В работе</option>
+                                    <option value="завершен" {% if status_filter == "завершен" %}selected{% endif %}>Завершен</option>
+                                    <option value="отменен" {% if status_filter == "отменен" %}selected{% endif %}>Отменен</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="clientNameFilter" class="block text-sm font-medium text-gray-700">Имя клиента:</label>
+                                <input type="text" id="clientNameFilter" value="{{ client_name_filter or '' }}" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" oninput="fetchData()">
+                            </div>
+                            <div>
+                                <label for="dateFromFilter" class="block text-sm font-medium text-gray-700">Дата с:</label>
+                                <input type="date" id="dateFromFilter" value="{{ date_from_filter or '' }}" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                            </div>
+                            <div>
+                                <label for="dateToFilter" class="block text-sm font-medium text-gray-700">Дата по:</label>
+                                <input type="date" id="dateToFilter" value="{{ date_to_filter or '' }}" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                            </div>
+                        </div>
+
+                        <!-- Фильтры для клиентов -->
+                        <div id="clientsFilters" class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 hidden">
+                            <div>
+                                <label for="clientNameFilterClients" class="block text-sm font-medium text-gray-700">Имя:</label>
+                                <input type="text" id="clientNameFilterClients" value="{{ client_name_filter or '' }}" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" oninput="fetchData()">
+                            </div>
+                            <div>
+                                <label for="clientSourceFilter" class="block text-sm font-medium text-gray-700">Источник:</label>
+                                <select id="clientSourceFilter" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                                    <option value="">Все</option>
+                                    <option value="звонок" {% if client_source_filter == "звонок" %}selected{% endif %}>Звонок</option>
+                                    <option value="сайт" {% if client_source_filter == "сайт" %}selected{% endif %}>Сайт</option>
+                                    <option value="рекомендация" {% if client_source_filter == "рекомендация" %}selected{% endif %}>Рекомендация</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Фильтры для услуг -->
+                        <div id="servicesFilters" class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 hidden">
+                            <div>
+                                <label for="serviceCategoryFilter" class="block text-sm font-medium text-gray-700">Категория:</label>
+                                <select id="serviceCategoryFilter" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                                    <option value="">Все</option>
+                                    <option value="Установка" {% if service_category_filter == "Установка" %}selected{% endif %}>Установка</option>
+                                    <option value="Обслуживание" {% if service_category_filter == "Обслуживание" %}selected{% endif %}>Обслуживание</option>
+                                    <option value="Доп услуга" {% if service_category_filter == "Доп услуга" %}selected{% endif %}>Доп услуга</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Фильтры для сотрудников -->
+                        <div id="employeesFilters" class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 hidden">
+                            <div>
+                                <label for="employeeTypeFilter" class="block text-sm font-medium text-gray-700">Тип сотрудника:</label>
+                                <select id="employeeTypeFilter" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                                    <option value="">Все</option>
+                                    <option value="менеджер" {% if employee_type_filter == "менеджер" %}selected{% endif %}>Менеджер</option>
+                                    <option value="монтажник" {% if employee_type_filter == "монтажник" %}selected{% endif %}>Монтажник</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="employeeActiveFilter" class="block text-sm font-medium text-gray-700">Активен:</label>
+                                <select id="employeeActiveFilter" class="type-selector mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchData()">
+                                    <option value="">Все</option>
+                                    <option value="1" {% if employee_active_filter == 1 %}selected{% endif %}>Да</option>
+                                    <option value="0" {% if employee_active_filter == 0 %}selected{% endif %}>Нет</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="exportData()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Экспортировать</button>
+                </div>
+            </div>
+
+            <!-- Таблица предпросмотра -->
+            <div class="bg-white p-6 rounded-lg shadow overflow-x-auto">
+                <h3 class="text-lg font-semibold mb-4">Предпросмотр данных</h3>
+                <table id="previewTable">
+                    <thead id="previewTableHead"></thead>
+                    <tbody id="previewTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кастомный JavaScript -->
+    <script>
+        // Переключение боковой панели
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-hidden');
+        }
+
+        // Форматирование даты для отображения
+        function formatDateTimeDisplay(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr.replace(' ', 'T'));
+            if (isNaN(date)) return dateStr;
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Показ/скрытие фильтров в зависимости от типа данных
+        function updateFilters() {
+            const exportType = document.getElementById('exportType').value;
+            document.getElementById('ordersFilters').classList.add('hidden');
+            document.getElementById('clientsFilters').classList.add('hidden');
+            document.getElementById('servicesFilters').classList.add('hidden');
+            document.getElementById('employeesFilters').classList.add('hidden');
+
+            if (exportType === 'orders') {
+                document.getElementById('ordersFilters').classList.remove('hidden');
+            } else if (exportType === 'clients') {
+                document.getElementById('clientsFilters').classList.remove('hidden');
+            } else if (exportType === 'services') {
+                document.getElementById('servicesFilters').classList.remove('hidden');
+            } else if (exportType === 'employees') {
+                document.getElementById('employeesFilters').classList.remove('hidden');
+            }
+
+            fetchData();
+        }
+
+        // Получение данных для предпросмотра
+        async function fetchData() {
+            const exportType = document.getElementById('exportType').value;
+            const params = new URLSearchParams({ export_type: exportType });
+
+            if (exportType === 'orders') {
+                const status = document.getElementById('statusFilter').value;
+                const clientName = document.getElementById('clientNameFilter').value;
+                const dateFrom = document.getElementById('dateFromFilter').value;
+                const dateTo = document.getElementById('dateToFilter').value;
+                if (status) params.append('status', status);
+                if (clientName) params.append('client_name', clientName);
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+            } else if (exportType === 'clients') {
+                const clientName = document.getElementById('clientNameFilterClients').value;
+                const clientSource = document.getElementById('clientSourceFilter').value;
+                if (clientName) params.append('client_name', clientName);
+                if (clientSource) params.append('client_source', clientSource);
+            } else if (exportType === 'services') {
+                const serviceCategory = document.getElementById('serviceCategoryFilter').value;
+                if (serviceCategory) params.append('service_category', serviceCategory);
+            } else if (exportType === 'employees') {
+                const employeeType = document.getElementById('employeeTypeFilter').value;
+                const employeeActive = document.getElementById('employeeActiveFilter').value;
+                if (employeeType) params.append('employee_type', employeeType);
+                if (employeeActive) params.append('employee_active', employeeActive);
+            }
+
+            try {
+                const response = await fetch(`/api/export/preview?${params}`);
+                if (!response.ok) throw new Error('Ошибка загрузки данных');
+                const data = await response.json();
+
+                // Обновляем таблицу предпросмотра
+                const tableHead = document.getElementById('previewTableHead');
+                const tableBody = document.getElementById('previewTableBody');
+                tableHead.innerHTML = '';
+                tableBody.innerHTML = '';
+
+                if (exportType === 'orders') {
+                    const headers = [
+                        "ID", "Клиент", "Основная услуга", "Дополнительные услуги",
+                        "Сумма (₽)", "Менеджер", "Первый монтажник", "Второй монтажник",
+                        "Дата заказа", "Дата завершения", "Статус", "Примечания"
+                    ];
+                    const headerRow = document.createElement('tr');
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    tableHead.appendChild(headerRow);
+
+                    data.orders.forEach(order => {
+                        const row = document.createElement('tr');
+                        const additionalServices = order.additional_services.map(s => s.name).join(', ') || '-';
+                        row.innerHTML = `
+                            <td>${order.id}</td>
+                            <td>${order.client ? order.client.name : '-'}</td>
+                            <td>${order.main_service ? order.main_service.name : '-'}</td>
+                            <td>${additionalServices}</td>
+                            <td>${order.total_price.toFixed(2)}</td>
+                            <td>${order.manager ? order.manager.name : '-'}</td>
+                            <td>${order.first_installer ? order.first_installer.name : '-'}</td>
+                            <td>${order.second_installer ? order.second_installer.name : '-'}</td>
+                            <td>${formatDateTimeDisplay(order.order_date)}</td>
+                            <td>${formatDateTimeDisplay(order.completion_date)}</td>
+                            <td>
+                                <span class="status-dot ${order.status.replace(' ', '-')}" title="${order.status}"></span>
+                                ${order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(' ', ' ')}
+                            </td>
+                            <td>${order.notes || '-'}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else if (exportType === 'clients') {
+                    const headers = ["ID", "Имя", "Телефон", "Источник", "Дата создания", "Дата обновления"];
+                    const headerRow = document.createElement('tr');
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    tableHead.appendChild(headerRow);
+
+                    data.clients.forEach(client => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${client.id}</td>
+                            <td>${client.name}</td>
+                            <td>${client.phone}</td>
+                            <td>${client.source}</td>
+                            <td>${client.created_at}</td>
+                            <td>${client.updated_at || '-'}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else if (exportType === 'services') {
+                    const headers = ["ID", "Название", "Категория", "Стоимость материалов (₽)", "Цена (₽)", "Дата создания", "Дата обновления"];
+                    const headerRow = document.createElement('tr');
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    tableHead.appendChild(headerRow);
+
+                    data.services.forEach(service => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${service.id}</td>
+                            <td>${service.name}</td>
+                            <td>${service.category}</td>
+                            <td>${service.material_cost.toFixed(2)}</td>
+                            <td>${service.price.toFixed(2)}</td>
+                            <td>${service.created_at}</td>
+                            <td>${service.updated_at || '-'}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else if (exportType === 'employees') {
+                    const headers = [
+                        "ID", "Имя", "Телефон", "Тип сотрудника", "Базовая зарплата (₽)",
+                        "Ставка за заказ", "Комиссия (%)", "Активен", "Заработано за период (₽)",
+                        "Выплачено (₽)", "Осталось выплатить (₽)", "Количество заказов",
+                        "Дата создания", "Дата обновления"
+                    ];
+                    const headerRow = document.createElement('tr');
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    tableHead.appendChild(headerRow);
+
+                    data.employees.forEach(employee => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${employee.id}</td>
+                            <td>${employee.name}</td>
+                            <td>${employee.phone}</td>
+                            <td>${employee.employee_type}</td>
+                            <td>${employee.base_salary ? employee.base_salary.toFixed(2) : '0'}</td>
+                            <td>${employee.order_rate.toFixed(2)}</td>
+                            <td>${employee.commission_rate.toFixed(2)}</td>
+                            <td>${employee.active == 1 ? 'Да' : 'Нет'}</td>
+                            <td>${employee.total_earned.toFixed(2)}</td>
+                            <td>${employee.paid_amount.toFixed(2)}</td>
+                            <td>${employee.remaining_to_pay.toFixed(2)}</td>
+                            <td>${employee.order_count}</td>
+                            <td>${employee.created_at}</td>
+                            <td>${employee.updated_at || '-'}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке данных:', error);
+            }
+        }
+
+        // Экспорт данных
+        function exportData() {
+            const exportType = document.getElementById('exportType').value;
+            const exportFormat = document.getElementById('exportFormat').value;
+            const params = new URLSearchParams({ export_type: exportType, format: exportFormat });
+
+            if (exportType === 'orders') {
+                const status = document.getElementById('statusFilter').value;
+                const clientName = document.getElementById('clientNameFilter').value;
+                const dateFrom = document.getElementById('dateFromFilter').value;
+                const dateTo = document.getElementById('dateToFilter').value;
+                if (status) params.append('status', status);
+                if (clientName) params.append('client_name', clientName);
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+            } else if (exportType === 'clients') {
+                const clientName = document.getElementById('clientNameFilterClients').value;
+                const clientSource = document.getElementById('clientSourceFilter').value;
+                if (clientName) params.append('client_name', clientName);
+                if (clientSource) params.append('client_source', clientSource);
+            } else if (exportType === 'services') {
+                const serviceCategory = document.getElementById('serviceCategoryFilter').value;
+                if (serviceCategory) params.append('service_category', serviceCategory);
+            } else if (exportType === 'employees') {
+                const employeeType = document.getElementById('employeeTypeFilter').value;
+                const employeeActive = document.getElementById('employeeActiveFilter').value;
+                if (employeeType) params.append('employee_type', employeeType);
+                if (employeeActive) params.append('employee_active', employeeActive);
+            }
+
+            window.location.href = `/api/export?${params}`;
+        }
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            updateFilters();
+            fetchData();
+        });
+    </script>
+</body>
+</html>

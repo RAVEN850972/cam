@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM для монтажа кондиционеров - Финансы</title>
+    <!-- Подключаем Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Кастомные стили -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+        .pagination a, .pagination span {
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            color: #374151;
+            text-decoration: none;
+        }
+        .pagination a:hover {
+            background-color: #f3f4f6;
+        }
+        .pagination .current {
+            background-color: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+        .pagination .disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .status-dot {
+            display: inline-block;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .status-dot.новый { background-color: #f59e0b; }
+        .status-dot.в-работе { background-color: #3b82f6; }
+        .status-dot.завершен { background-color: #10b981; }
+        .status-dot.отменен { background-color: #ef4444; }
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            color: white;
+            z-index: 1000;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .notification.success {
+            background-color: #10b981;
+        }
+        .notification.error {
+            background-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Навигационное меню -->
+    <div class="flex h-screen">
+        <!-- Боковая панель -->
+        <div class="sidebar fixed inset-y-0 left-0 w-64 bg-blue-800 text-white p-4 md:static md:translate-x-0 sidebar-hidden" id="sidebar">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold">CRM Кондиционеры</h2>
+                <button class="md:hidden text-white" onclick="toggleSidebar()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-2"><a href="/" class="block p-2 hover:bg-blue-700 rounded">Дашборд</a></li>
+                    <li class="mb-2"><a href="/orders" class="block p-2 hover:bg-blue-700 rounded">Заказы</a></li>
+                    <li class="mb-2"><a href="/services" class="block p-2 hover:bg-blue-700 rounded">Услуги</a></li>
+                    <li class="mb-2"><a href="/clients" class="block p-2 hover:bg-blue-700 rounded">Клиенты</a></li>
+                    <li class="mb-2"><a href="/employees" class="block p-2 hover:bg-blue-700 rounded">Сотрудники</a></li>
+                    <li class="mb-2"><a href="#" class="block p-2 bg-blue-900 rounded">Финансы</a></li>
+                    <li class="mb-2"><a href="/export" class="block p-2 hover:bg-blue-700 rounded">Экспорт</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="flex-1 p-4 md:p-6 overflow-auto">
+            <!-- Мобильная кнопка меню -->
+            <button class="md:hidden mb-4 p-2 bg-blue-800 text-white rounded" onclick="toggleSidebar()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+
+            <h1 class="text-2xl font-bold mb-6">Финансы</h1>
+
+            <!-- Форма для установки начального баланса -->
+            <div id="initialBalanceForm" class="bg-white p-6 rounded-lg shadow mb-6 hidden">
+                <h3 class="text-lg font-semibold mb-4">Установить начальный баланс</h3>
+                <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                    <div class="flex-1">
+                        <label for="initialBalance" class="block text-sm font-medium text-gray-700">Начальный баланс (₽)</label>
+                        <input type="number" id="initialBalance" step="0.01" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Введите начальный баланс">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button onclick="setInitialBalance()" class="w-full md:w-auto bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Установить баланс</button>
+                </div>
+            </div>
+
+            <!-- Фильтры -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+                <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <div>
+                        <label for="dateFromFilter" class="block text-sm font-medium text-gray-700">Дата с:</label>
+                        <input type="date" id="dateFromFilter" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchFinanceData()">
+                    </div>
+                    <div>
+                        <label for="dateToFilter" class="block text-sm font-medium text-gray-700">Дата по:</label>
+                        <input type="date" id="dateToFilter" class="mt-1 block w-full md:w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" onchange="fetchFinanceData()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма для добавления расхода -->
+            <div class="bg-white p-6 rounded-lg shadow mb-6">
+                <h3 class="text-lg font-semibold mb-4">Добавить расход</h3>
+                <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0">
+                    <div class="flex-1">
+                        <label for="expenseCategory" class="block text-sm font-medium text-gray-700">Категория</label>
+                        <select id="expenseCategory" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Материалы">Материалы</option>
+                            <option value="Бензин">Бензин</option>
+                            <option value="Закупка кондиционеров">Закупка кондиционеров</option>
+                            <option value="Прочее">Прочее</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label for="expenseAmount" class="block text-sm font-medium text-gray-700">Сумма (₽)</label>
+                        <input type="number" id="expenseAmount" step="0.01" min="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" placeholder="Введите сумму">
+                    </div>
+                    <div class="flex-1">
+                        <label for="expenseDate" class="block text-sm font-medium text-gray-700">Дата</label>
+                        <input type="date" id="expenseDate" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label for="expenseDescription" class="block text-sm font-medium text-gray-700">Описание</label>
+                    <textarea id="expenseDescription" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" rows="3" placeholder="Введите описание"></textarea>
+                </div>
+                <div class="mt-4">
+                    <button onclick="addExpense()" class="w-full md:w-auto bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Добавить расход</button>
+                </div>
+            </div>
+
+            <!-- Финансовая сводка -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="card bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Баланс</h3>
+                    <p id="currentBalance" class="text-2xl font-bold text-purple-600">0 ₽</p>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Доходы</h3>
+                    <p id="totalRevenue" class="text-2xl font-bold text-green-600">0 ₽</p>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Расходы</h3>
+                    <p id="totalExpenses" class="text-2xl font-bold text-red-600">0 ₽</p>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Материалы: <span id="materialCost">0 ₽</span> | Доп. расходы: <span id="additionalExpenses">0 ₽</span> | Зарплаты: <span id="salaryCost">0 ₽</span>
+                    </p>
+                </div>
+                <div class="card bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-700">Прибыль</h3>
+                    <p id="profit" class="text-2xl font-bold text-blue-600">0 ₽</p>
+                </div>
+            </div>
+
+            <!-- Таблица расходов -->
+            <div class="bg-white p-6 rounded-lg shadow overflow-x-auto mb-6">
+                <h3 class="text-lg font-semibold mb-4">Расходы</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Категория</th>
+                            <th>Сумма (₽)</th>
+                            <th>Описание</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expensesTable">
+                        <!-- Данные будут заполнены через JS -->
+                    </tbody>
+                </table>
+                <!-- Пагинация -->
+                <div id="expensesPagination" class="pagination">
+                    <!-- Пагинация будет заполнена через JS -->
+                </div>
+            </div>
+
+            <!-- Таблица заказов -->
+            <div class="bg-white p-6 rounded-lg shadow overflow-x-auto mb-6">
+                <h3 class="text-lg font-semibold mb-4">Заказы</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Клиент</th>
+                            <th>Услуга</th>
+                            <th>Стоимость (₽)</th>
+                            <th>Материалы (₽)</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable">
+                        <!-- Данные будут заполнены через JS -->
+                    </tbody>
+                </table>
+                <!-- Пагинация -->
+                <div id="ordersPagination" class="pagination">
+                    <!-- Пагинация будет заполнена через JS -->
+                </div>
+            </div>
+
+            <!-- Таблица сотрудников -->
+            <div class="bg-white p-6 rounded-lg shadow overflow-x-auto">
+                <h3 class="text-lg font-semibold mb-4">Зарплаты сотрудников</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Сотрудник</th>
+                            <th>Тип</th>
+                            <th>Фиксированная зарплата (₽)</th>
+                            <th>Комиссия (₽)</th>
+                            <th>Общая сумма (₽)</th>
+                            <th>Количество заказов</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTable">
+                        <!-- Данные будут заполнены через JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кастомный JavaScript -->
+    <script>
+        // Переключение боковой панели
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-hidden');
+        }
+
+        // Форматирование даты для отображения
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            if (isNaN(date)) return dateStr;
+            return date.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        }
+
+        // Форматирование даты и времени
+        function formatDateTimeDisplay(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr.replace(' ', 'T'));
+            if (isNaN(date)) return dateStr;
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Показ уведомления
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Установка начального баланса
+        async function setInitialBalance() {
+            const initialBalance = parseFloat(document.getElementById('initialBalance').value);
+
+            // Валидация
+            if (isNaN(initialBalance) || initialBalance < 0) {
+                showNotification('Введите корректный начальный баланс', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/balance/initial', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ initial_balance: initialBalance })
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showNotification('Начальный баланс успешно установлен', 'success');
+                    document.getElementById('initialBalanceForm').classList.add('hidden');
+                    fetchFinanceData();
+                } else {
+                    showNotification(result.message || 'Ошибка при установке баланса', 'error');
+                }
+            } catch (error) {
+                showNotification('Ошибка при установке баланса: ' + error.message, 'error');
+            }
+        }
+
+        // Добавление нового расхода
+        async function addExpense() {
+            const category = document.getElementById('expenseCategory').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const expenseDate = document.getElementById('expenseDate').value;
+            const description = document.getElementById('expenseDescription').value;
+
+            // Валидация
+            if (!category) {
+                showNotification('Выберите категорию расхода', 'error');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                showNotification('Введите корректную сумму', 'error');
+                return;
+            }
+            if (!expenseDate) {
+                showNotification('Укажите дату расхода', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/expenses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        category,
+                        amount,
+                        expense_date: expenseDate,
+                        description: description || null
+                    })
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showNotification('Расход успешно добавлен', 'success');
+                    // Очищаем форму
+                    document.getElementById('expenseAmount').value = '';
+                    document.getElementById('expenseDate').value = '';
+                    document.getElementById('expenseDescription').value = '';
+                    // Обновляем данные
+                    fetchFinanceData();
+                } else {
+                    showNotification(result.message || 'Ошибка при добавлении расхода', 'error');
+                }
+            } catch (error) {
+                showNotification('Ошибка при добавлении расхода: ' + error.message, 'error');
+            }
+        }
+
+        // Получение финансовых данных
+        async function fetchFinanceData() {
+            const dateFrom = document.getElementById('dateFromFilter').value;
+            const dateTo = document.getElementById('dateToFilter').value;
+
+            // Получаем сводку
+            await fetchSummary(dateFrom, dateTo);
+            // Получаем расходы (первая страница)
+            await fetchExpenses(1, dateFrom, dateTo);
+            // Получаем заказы (первая страница)
+            await fetchOrders(1, dateFrom, dateTo);
+            // Получаем данные по сотрудникам
+            await fetchEmployees(dateFrom, dateTo);
+        }
+
+        // Получение финансовой сводки
+        async function fetchSummary(dateFrom, dateTo) {
+            try {
+                const params = new URLSearchParams();
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+                
+                const response = await fetch(`/api/finance/summary?${params}`);
+                if (!response.ok) throw new Error('Ошибка загрузки сводки');
+                const data = await response.json();
+
+                document.getElementById('totalRevenue').textContent = `${data.total_revenue.toFixed(2)} ₽`;
+                document.getElementById('totalExpenses').textContent = `${data.total_expenses.toFixed(2)} ₽`;
+                document.getElementById('materialCost').textContent = `${data.total_material_cost.toFixed(2)} ₽`;
+                document.getElementById('additionalExpenses').textContent = `${data.total_additional_expenses.toFixed(2)} ₽`;
+                document.getElementById('salaryCost').textContent = `${data.total_salary.toFixed(2)} ₽`;
+                document.getElementById('profit').textContent = `${data.profit.toFixed(2)} ₽`;
+                document.getElementById('currentBalance').textContent = data.current_balance !== null ? `${data.current_balance.toFixed(2)} ₽` : 'Не установлен';
+
+                // Показываем/скрываем форму начального баланса
+                const initialBalanceForm = document.getElementById('initialBalanceForm');
+                initialBalanceForm.classList.toggle('hidden', data.initial_balance_set);
+            } catch (error) {
+                console.error('Ошибка при загрузке сводки:', error);
+                showNotification('Ошибка загрузки финансовой сводки', 'error');
+            }
+        }
+
+        // Получение списка расходов
+        async function fetchExpenses(page, dateFrom, dateTo) {
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    limit: 10
+                });
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+
+                const response = await fetch(`/api/expenses?${params}`);
+                if (!response.ok) throw new Error('Ошибка загрузки расходов');
+                const data = await response.json();
+
+                // Обновляем таблицу расходов
+                const tableBody = document.getElementById('expensesTable');
+                tableBody.innerHTML = '';
+                data.expenses.forEach(expense => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${expense.category}</td>
+                        <td>${expense.amount.toFixed(2)}</td>
+                        <td>${expense.description || '-'}</td>
+                        <td>${formatDateDisplay(expense.expense_date)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Обновляем пагинацию
+                const pagination = document.getElementById('expensesPagination');
+                pagination.innerHTML = '';
+                if (data.total_pages > 1) {
+                    // Кнопка "Предыдущая"
+                    const prevLink = document.createElement('a');
+                    prevLink.textContent = '«';
+                    prevLink.href = '#';
+                    if (data.current_page === 1) {
+                        prevLink.className = 'disabled';
+                    } else {
+                        prevLink.onclick = () => fetchExpenses(data.current_page - 1, dateFrom, dateTo);
+                    }
+                    pagination.appendChild(prevLink);
+
+                    // Номера страниц
+                    for (let i = 1; i <= data.total_pages; i++) {
+                        const pageLink = document.createElement(i === data.current_page ? 'span' : 'a');
+                        pageLink.textContent = i;
+                        if (i === data.current_page) {
+                            pageLink.className = 'current';
+                        } else {
+                            pageLink.href = '#';
+                            pageLink.onclick = () => fetchExpenses(i, dateFrom, dateTo);
+                        }
+                        pagination.appendChild(pageLink);
+                    }
+
+                    // Кнопка "Следующая"
+                    const nextLink = document.createElement('a');
+                    nextLink.textContent = '»';
+                    nextLink.href = '#';
+                    if (data.current_page === data.total_pages) {
+                        nextLink.className = 'disabled';
+                    } else {
+                        nextLink.onclick = () => fetchExpenses(data.current_page + 1, dateFrom, dateTo);
+                    }
+                    pagination.appendChild(nextLink);
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке расходов:', error);
+                showNotification('Ошибка загрузки списка расходов', 'error');
+            }
+        }
+
+        // Получение списка заказов
+        async function fetchOrders(page, dateFrom, dateTo) {
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    limit: 10
+                });
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+
+                const response = await fetch(`/api/finance/orders?${params}`);
+                if (!response.ok) throw new Error('Ошибка загрузки заказов');
+                const data = await response.json();
+
+                // Обновляем таблицу заказов
+                const tableBody = document.getElementById('ordersTable');
+                tableBody.innerHTML = '';
+                data.orders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${order.id}</td>
+                        <td>${order.client ? order.client.name : '-'}</td>
+                        <td>${order.main_service ? order.main_service.name : '-'}</td>
+                        <td>${order.total_price.toFixed(2)}</td>
+                        <td>${order.material_cost.toFixed(2)}</td>
+                        <td>${formatDateTimeDisplay(order.order_date)}</td>
+                        <td>
+                            <span class="status-dot ${order.status.replace(' ', '-')}" title="${order.status}"></span>
+                            ${order.status.charAt(0).toUpperCase() + order.status.slice(1).replace(' ', ' ')}
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Обновляем пагинацию
+                const pagination = document.getElementById('ordersPagination');
+                pagination.innerHTML = '';
+                if (data.total_pages > 1) {
+                    // Кнопка "Предыдущая"
+                    const prevLink = document.createElement('a');
+                    prevLink.textContent = '«';
+                    prevLink.href = '#';
+                    if (data.current_page === 1) {
+                        prevLink.className = 'disabled';
+                    } else {
+                        prevLink.onclick = () => fetchOrders(data.current_page - 1, dateFrom, dateTo);
+                    }
+                    pagination.appendChild(prevLink);
+
+                    // Номера страниц
+                    for (let i = 1; i <= data.total_pages; i++) {
+                        const pageLink = document.createElement(i === data.current_page ? 'span' : 'a');
+                        pageLink.textContent = i;
+                        if (i === data.current_page) {
+                            pageLink.className = 'current';
+                        } else {
+                            pageLink.href = '#';
+                            pageLink.onclick = () => fetchOrders(i, dateFrom, dateTo);
+                        }
+                        pagination.appendChild(pageLink);
+                    }
+
+                    // Кнопка "Следующая"
+                    const nextLink = document.createElement('a');
+                    nextLink.textContent = '»';
+                    nextLink.href = '#';
+                    if (data.current_page === data.total_pages) {
+                        nextLink.className = 'disabled';
+                    } else {
+                        nextLink.onclick = () => fetchOrders(data.current_page + 1, dateFrom, dateTo);
+                    }
+                    pagination.appendChild(nextLink);
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке заказов:', error);
+                showNotification('Ошибка загрузки списка заказов', 'error');
+            }
+        }
+
+        // Получение данных по сотрудникам
+        async function fetchEmployees(dateFrom, dateTo) {
+            try {
+                const params = new URLSearchParams();
+                if (dateFrom) params.append('date_from', dateFrom);
+                if (dateTo) params.append('date_to', dateTo);
+
+                const response = await fetch(`/api/finance/employees?${params}`);
+                if (!response.ok) throw new Error('Ошибка загрузки данных сотрудников');
+                const data = await response.json();
+
+                // Обновляем таблицу сотрудников
+                const tableBody = document.getElementById('employeesTable');
+                tableBody.innerHTML = '';
+                data.employees.forEach(employee => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${employee.name}</td>
+                        <td>${employee.employee_type.charAt(0).toUpperCase() + employee.employee_type.slice(1)}</td>
+                        <td>${employee.base_salary.toFixed(2)}</td>
+                        <td>${employee.commission.toFixed(2)}</td>
+                        <td>${employee.total_salary.toFixed(2)}</td>
+                        <td>${employee.order_count}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке данных сотрудников:', error);
+                showNotification('Ошибка загрузки данных сотрудников', 'error');
+            }
+        }
+
+        // Инициализация страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            // Устанавливаем начальные значения фильтров из параметров страницы
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateFrom = urlParams.get('date_from') || '';
+            const dateTo = urlParams.get('date_to') || '';
+            document.getElementById('dateFromFilter').value = dateFrom;
+            document.getElementById('dateToFilter').value = dateTo;
+
+            // Устанавливаем текущую дату как значение по умолчанию для поля expenseDate
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('expenseDate').value = today;
+
+            fetchFinanceData();
+        });
+    </script>
+</body>
+</html>
