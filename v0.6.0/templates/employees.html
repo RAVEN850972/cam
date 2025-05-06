@@ -9,7 +9,123 @@
     <!-- Подключаем Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Подключаем наш файл со стилями -->
-    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Стили для анимации загрузки */
+        .loader {
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease-in-out;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification-success {
+            background-color: #10b981;
+        }
+
+        .notification-error {
+            background-color: #ef4444;
+        }
+
+        .notification-info {
+            background-color: #3b82f6;
+        }
+
+        /* Стили для статусов */
+        .status-pill {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            text-transform: capitalize;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-processing {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-completed {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-canceled {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Стили для загрузки */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        /* Стили для меню */
+        .menu-item.active {
+            background-color: #f3f4f6;
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        /* Адаптивные стили для таблицы */
+        @media (max-width: 768px) {
+            .responsive-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+
+        /* Анимация для статистики */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .animate-pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -36,7 +152,7 @@
                     <i class="fas fa-briefcase mr-3"></i>
                     Услуги
                 </a>
-                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                <a href="/employees" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="employees">
                     <i class="fas fa-user-check mr-3"></i>
                     Сотрудники
                 </a>
@@ -44,7 +160,7 @@
                     <i class="fas fa-money-bill-wave mr-3"></i>
                     Зарплаты
                 </a>
-                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                <a href="/finance" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="finance">
                     <i class="fas fa-chart-line mr-3"></i>
                     Финансы
                 </a>
@@ -90,7 +206,7 @@
                     </button>
                     
                     <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                        АК
+                        А
                     </div>
                 </div>
             </header>
@@ -158,7 +274,7 @@
                     </div>
                     
                     <!-- Контейнер таблицы -->
-                    <div class="overflow-x-auto hidden" id="employees-table-container">
+                    <div class="overflow-x-auto hidden responsive-table" id="employees-table-container">
                         <table class="w-full">
                             <thead class="bg-gray-50 text-gray-600 text-sm">
                                 <tr>
@@ -239,7 +355,7 @@
                         </select>
                     </div>
                     
-                    <div class="mb-4" id="base-salary-container">
+                    <div class="mb-4" id="base-salary-container" style="display: none;">
                         <label class="block text-gray-700 font-medium mb-2">Базовая зарплата</label>
                         <input type="number" id="employee-base-salary" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" min="0" step="1000">
                         <p class="text-sm text-gray-500 mt-1">Только для менеджеров. По умолчанию: 30000₽</p>
@@ -487,248 +603,116 @@
         <span id="notification-message"></span>
     </div>
 
-    <!-- Подключаем JavaScript -->
-    <script src="./js/api.js"></script>
-    <script src="./js/ui.js"></script>
-    
     <!-- JavaScript для страницы сотрудников -->
     <script>
+        // API клиент
+        const api = {
+            baseUrl: window.location.hostname === 'localhost' ? 'http://localhost:8000/api' : '/api',
+            
+            async get(endpoint, params = {}) {
+                try {
+                    const url = new URL(`${this.baseUrl}/${endpoint}`);
+                    Object.keys(params).forEach(key => {
+                        if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+                            url.searchParams.append(key, params[key]);
+                        }
+                    });
+                    
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.detail || `HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (GET ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            async post(endpoint, data) {
+                try {
+                    const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data),
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.detail || `HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (POST ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            async put(endpoint, data) {
+                try {
+                    const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data),
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.detail || `HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (PUT ${endpoint}):`, error);
+                    throw error;
+                }
+            }
+        };
+
+        // Форматирование данных
+        const formatter = {
+            currency(value) {
+                return new Intl.NumberFormat('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB',
+                    maximumFractionDigits: 0
+                }).format(value);
+            },
+            
+            date(dateString) {
+                return new Date(dateString).toLocaleDateString('ru-RU');
+            },
+            
+            dateTime(dateString) {
+                const date = new Date(dateString);
+                return `${date.toLocaleDateString('ru-RU')} ${date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})}`;
+            }
+        };
+
         // Глобальные переменные
         let currentPage = 1;
         let totalPages = 1;
         let pageSize = 20;
         let currentEmployeeId = null;
-        
-        // Мок-данные для тестирования
-        function getMockEmployees() {
-            return {
-                "employees": [
-                    {
-                        "id": 1,
-                        "name": "Петров Иван",
-                        "phone": "+79001234574",
-                        "employee_type": "менеджер",
-                        "base_salary": 30000,
-                        "active": 1,
-                        "created_at": "2025-01-15",
-                        "updated_at": "2025-04-20"
-                    },
-                    {
-                        "id": 2,
-                        "name": "Васильева Ольга",
-                        "phone": "+79001234575",
-                        "employee_type": "менеджер",
-                        "base_salary": 30000,
-                        "active": 1,
-                        "created_at": "2025-02-10",
-                        "updated_at": null
-                    },
-                    {
-                        "id": 3,
-                        "name": "Сидоров Алексей",
-                        "phone": "+79001234576",
-                        "employee_type": "монтажник",
-                        "base_salary": null,
-                        "active": 1,
-                        "created_at": "2025-03-05",
-                        "updated_at": null
-                    },
-                    {
-                        "id": 4,
-                        "name": "Николаев Дмитрий",
-                        "phone": "+79001234577",
-                        "employee_type": "монтажник",
-                        "base_salary": null,
-                        "active": 1,
-                        "created_at": "2025-04-18",
-                        "updated_at": null
-                    },
-                    {
-                        "id": 5,
-                        "name": "Смирнов Сергей",
-                        "phone": "+79001234578",
-                        "employee_type": "владелец",
-                        "base_salary": null,
-                        "active": 1,
-                        "created_at": "2025-01-01",
-                        "updated_at": null
-                    }
-                ],
-                "total_count": 5,
-                "page": 1,
-                "total_pages": 1,
-                "limit": 20
-            };
-        }
-        
-        // Мок-данные статистики по типам сотрудников
-        function getMockEmployeeStats() {
-            return {
-                "менеджер": 2,
-                "монтажник": 2,
-                "владелец": 1
-            };
-        }
-        
-        // Мок-данные для детальной информации о сотруднике
-        function getMockEmployeeDetails(employeeId) {
-            const employeeDetails = {
-                1: {
-                    "id": 1,
-                    "name": "Петров Иван",
-                    "phone": "+79001234574",
-                    "employee_type": "менеджер",
-                    "base_salary": 30000,
-                    "active": 1,
-                    "created_at": "2025-01-15",
-                    "updated_at": "2025-04-20",
-                    "salary": 35750,
-                    "paid": 20000,
-                    "to_pay": 15750,
-                    "orders_count": 20,
-                    "last_order_date": "2025-04-30",
-                    "orders": [
-                        {
-                            "id": 1,
-                            "date": "2025-04-30 10:00",
-                            "client": "Иванов Алексей",
-                            "services": "Кондиционер Daikin 9 БТЮ",
-                            "total_price": 45000,
-                            "commission": 1250,
-                            "status": "завершен"
-                        },
-                        {
-                            "id": 2,
-                            "date": "2025-04-25 14:30",
-                            "client": "Петрова Мария",
-                            "services": "Кондиционер Mitsubishi 12 БТЮ",
-                            "total_price": 54000,
-                            "commission": 1250,
-                            "status": "в работе"
-                        },
-                        {
-                            "id": 3,
-                            "date": "2025-04-20 11:30",
-                            "client": "Сидоров Игорь",
-                            "services": "Монтаж кондиционера",
-                            "total_price": 12000,
-                            "commission": 1250,
-                            "status": "завершен"
-                        }
-                    ],
-                    "payments": [
-                        {
-                            "id": 1,
-                            "date": "2025-04-15",
-                            "amount": 15000,
-                            "description": "Аванс"
-                        },
-                        {
-                            "id": 2,
-                            "date": "2025-04-30",
-                            "amount": 5000,
-                            "description": "Доплата"
-                        }
-                    ]
-                },
-                3: {
-                    "id": 3,
-                    "name": "Сидоров Алексей",
-                    "phone": "+79001234576",
-                    "employee_type": "монтажник",
-                    "base_salary": null,
-                    "active": 1,
-                    "created_at": "2025-03-05",
-                    "updated_at": null,
-                    "salary": 7500,
-                    "paid": 4500,
-                    "to_pay": 3000,
-                    "orders_count": 5,
-                    "last_order_date": "2025-04-28",
-                    "orders": [
-                        {
-                            "id": 1,
-                            "date": "2025-04-28 09:00",
-                            "client": "Иванов Алексей",
-                            "services": "Монтаж кондиционера",
-                            "total_price": 45000,
-                            "commission": 1500,
-                            "status": "завершен"
-                        },
-                        {
-                            "id": 2,
-                            "date": "2025-04-22 13:00",
-                            "client": "Петрова Мария",
-                            "services": "Монтаж кондиционера",
-                            "total_price": 54000,
-                            "commission": 1500,
-                            "status": "завершен"
-                        },
-                        {
-                            "id": 6,
-                            "date": "2025-04-15 10:30",
-                            "client": "Козлова Анна",
-                            "services": "Монтаж кондиционера",
-                            "total_price": 48000,
-                            "commission": 1500,
-                            "status": "завершен"
-                        }
-                    ],
-                    "payments": [
-                        {
-                            "id": 3,
-                            "date": "2025-04-10",
-                            "amount": 3000,
-                            "description": "Аванс"
-                        },
-                        {
-                            "id": 4,
-                            "date": "2025-04-25",
-                            "amount": 1500,
-                            "description": "Доплата"
-                        }
-                    ]
-                },
-                5: {
-                    "id": 5,
-                    "name": "Смирнов Сергей",
-                    "phone": "+79001234578",
-                    "employee_type": "владелец",
-                    "base_salary": null,
-                    "active": 1,
-                    "created_at": "2025-01-01",
-                    "updated_at": null,
-                    "salary": 15000,
-                    "paid": 0,
-                    "to_pay": 15000,
-                    "orders_count": 10,
-                    "last_order_date": "2025-04-30",
-                    "orders": [
-                        {
-                            "id": 1,
-                            "date": "2025-04-30 10:00",
-                            "client": "Иванов Алексей",
-                            "services": "Кондиционер Daikin 9 БТЮ",
-                            "total_price": 45000,
-                            "commission": 1500,
-                            "status": "завершен"
-                        },
-                        {
-                            "id": 2,
-                            "date": "2025-04-25 14:30",
-                            "client": "Петрова Мария",
-                            "services": "Кондиционер Mitsubishi 12 БТЮ",
-                            "total_price": 54000,
-                            "commission": 1500,
-                            "status": "в работе"
-                        }
-                    ],
-                    "payments": []
-                }
-            };
-            
-            return employeeDetails[employeeId] || null;
-        }
+        let searchQuery = '';
         
         // Загрузка сотрудников с фильтрацией и пагинацией
         async function loadEmployees() {
@@ -741,16 +725,17 @@
                 const employeeType = document.getElementById('employee-type-filter').value;
                 const active = document.getElementById('active-filter').value;
                 
-                // Формируем URL с параметрами
-                let url = `${API_BASE_URL}/employees?page=${currentPage}&limit=${pageSize}`;
-                if (employeeType) url += `&employee_type=${employeeType}`;
-                if (active !== '') url += `&active=${active}`;
+                // Параметры запроса
+                const params = {
+                    page: currentPage,
+                    limit: pageSize
+                };
                 
-                // Загружаем данные (в реальном приложении - API-запрос)
-                const data = await fetchWithErrorHandling(url);
-                // Здесь используем мок-данные для тестирования
-                //await new Promise(resolve => setTimeout(resolve, 800));
-                //const data = getMockEmployees();
+                if (employeeType) params.employee_type = employeeType;
+                if (active !== '') params.active = active;
+                
+                // Загружаем данные
+                const data = await api.get('employees', params);
                 
                 // Обновляем информацию о пагинации
                 totalPages = data.total_pages || 1;
@@ -764,84 +749,108 @@
                 document.getElementById('next-page').disabled = currentPage >= totalPages;
                 
                 // Заполняем таблицу сотрудников
-                const tableBody = document.getElementById('employees-table-body');
-                tableBody.innerHTML = '';
-                
-                data.employees.forEach(employee => {
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-gray-50';
-                    row.dataset.id = employee.id;
-                    
-                    // Форматируем дату
-                    const createdDate = new Date(employee.created_at);
-                    const formattedDate = createdDate.toLocaleDateString('ru-RU');
-                    
-                    // Определяем статус (активный/неактивный)
-                    const statusClass = employee.active === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                    const statusText = employee.active === 1 ? 'Активный' : 'Неактивный';
-                    
-                    // Переводим тип сотрудника с первой заглавной буквы
-                    const employeeTypeFormatted = employee.employee_type.charAt(0).toUpperCase() + employee.employee_type.slice(1);
-                    
-                    row.innerHTML = `
-                        <td class="py-4 px-6">${employee.id}</td>
-                        <td class="py-4 px-6">${employee.name}</td>
-                        <td class="py-4 px-6">${employee.phone}</td>
-                        <td class="py-4 px-6">
-                            <span class="px-2 py-1 bg-gray-100 rounded text-gray-800">${employeeTypeFormatted}</span>
-                        </td>
-                        <td class="py-4 px-6">${employee.base_salary !== null ? formatCurrency(employee.base_salary) : '-'}</td>
-                        <td class="py-4 px-6">
-                            <span class="px-2 py-1 ${statusClass} rounded">${statusText}</span>
-                        </td>
-                        <td class="py-4 px-6">${formattedDate}</td>
-                        <td class="py-4 px-6">
-                            <div class="flex space-x-2">
-                                <button class="text-blue-600 hover:text-blue-800 view-employee" data-id="${employee.id}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="text-yellow-600 hover:text-yellow-800 edit-employee" data-id="${employee.id}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="text-red-600 hover:text-red-800 deactivate-employee" data-id="${employee.id}" ${employee.active === 0 ? 'disabled' : ''}>
-                                    <i class="fas fa-user-slash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
+                renderEmployeesTable(data.employees);
                 
                 // Скрываем индикатор загрузки
                 document.getElementById('employees-loading').classList.add('hidden');
                 document.getElementById('employees-table-container').classList.remove('hidden');
                 
-                // Добавляем обработчики для кнопок
-                setupViewButtons();
-                setupEditButtons();
-                setupDeactivateButtons();
-                
             } catch (error) {
                 console.error('Ошибка при загрузке сотрудников:', error);
-                showNotification('Ошибка при загрузке данных', 'error');
+                showNotification('Ошибка при загрузке данных: ' + error.message, 'error');
+                
+                // Скрываем индикатор загрузки
+                document.getElementById('employees-loading').classList.add('hidden');
             }
         }
         
-        // Загрузка статистики по типам сотрудников
+        // Отображение таблицы сотрудников
+        function renderEmployeesTable(employees) {
+            const tableBody = document.getElementById('employees-table-body');
+            tableBody.innerHTML = '';
+            
+            if (employees.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="8" class="py-4 px-6 text-center text-gray-500">
+                        Нет сотрудников, соответствующих критериям поиска
+                    </td>
+                `;
+                tableBody.appendChild(row);
+                return;
+            }
+            
+            employees.forEach(employee => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.dataset.id = employee.id;
+                
+                // Форматируем дату
+                const createdDate = new Date(employee.created_at);
+                const formattedDate = createdDate.toLocaleDateString('ru-RU');
+                
+                // Определяем статус (активный/неактивный)
+                const statusClass = employee.active === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                const statusText = employee.active === 1 ? 'Активный' : 'Неактивный';
+                
+                // Переводим тип сотрудника с первой заглавной буквы
+                const employeeTypeFormatted = employee.employee_type.charAt(0).toUpperCase() + employee.employee_type.slice(1);
+                
+                row.innerHTML = `
+                    <td class="py-4 px-6">${employee.id}</td>
+                    <td class="py-4 px-6">${employee.name}</td>
+                    <td class="py-4 px-6">${employee.phone}</td>
+                    <td class="py-4 px-6">
+                        <span class="px-2 py-1 bg-gray-100 rounded text-gray-800">${employeeTypeFormatted}</span>
+                    </td>
+                    <td class="py-4 px-6">${employee.base_salary !== null ? formatter.currency(employee.base_salary) : '-'}</td>
+                    <td class="py-4 px-6">
+                        <span class="px-2 py-1 ${statusClass} rounded">${statusText}</span>
+                    </td>
+                    <td class="py-4 px-6">${formattedDate}</td>
+                    <td class="py-4 px-6">
+                        <div class="flex space-x-2">
+                            <button class="text-blue-600 hover:text-blue-800 p-1 view-employee" data-id="${employee.id}" title="Просмотр">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="text-yellow-600 hover:text-yellow-800 p-1 edit-employee" data-id="${employee.id}" title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-600 hover:text-red-800 p-1 deactivate-employee" data-id="${employee.id}" ${employee.active === 0 ? 'disabled' : ''} title="Деактивировать">
+                                <i class="fas fa-user-slash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Добавляем обработчики для кнопок
+            setupTableButtons();
+        }
+        
         // Загрузка статистики по типам сотрудников
         async function loadEmployeeStats() {
             try {
                 // Загружаем данные
-                // В реальном приложении с API использовать:
-                const data = await fetchWithErrorHandling(`${API_BASE_URL}/employees/stats`);
+                // В реальном приложении это будет API вызов
+                // const data = await api.get('employees/stats');
                 
                 // Для демонстрации используем мок-данные
-                //await new Promise(resolve => setTimeout(resolve, 500));
-                //const data = getMockEmployeeStats();
+                const allEmployees = await api.get('employees', { limit: 100 });
+                
+                // Подсчитываем статистику
+                const stats = {};
+                allEmployees.employees.forEach(emp => {
+                    if (!stats[emp.employee_type]) {
+                        stats[emp.employee_type] = 0;
+                    }
+                    stats[emp.employee_type]++;
+                });
                 
                 // Получаем общее количество сотрудников
-                const totalEmployees = Object.values(data).reduce((sum, count) => sum + count, 0);
+                const totalEmployees = Object.values(stats).reduce((sum, count) => sum + count, 0);
                 
                 // Создаем элементы статистики
                 const statsContainer = document.getElementById('employee-stats');
@@ -859,7 +868,7 @@
                 statsBar.className = 'flex h-8 rounded overflow-hidden w-full';
                 
                 // Добавляем сегменты для каждого типа сотрудников
-                Object.entries(data).forEach(([type, count]) => {
+                Object.entries(stats).forEach(([type, count]) => {
                     const percent = Math.round((count / totalEmployees) * 100);
                     const segment = document.createElement('div');
                     segment.className = `${colors[type] || 'bg-gray-500'} relative`;
@@ -877,7 +886,7 @@
                 const legend = document.createElement('div');
                 legend.className = 'flex flex-wrap mt-4 gap-4';
                 
-                Object.entries(data).forEach(([type, count]) => {
+                Object.entries(stats).forEach(([type, count]) => {
                     const percent = Math.round((count / totalEmployees) * 100);
                     const formattedType = type.charAt(0).toUpperCase() + type.slice(1) + 'ы';
                     
@@ -896,38 +905,30 @@
                 
             } catch (error) {
                 console.error('Ошибка при загрузке статистики:', error);
-                showNotification('Ошибка при загрузке статистики', 'error');
+                showNotification('Ошибка при загрузке статистики: ' + error.message, 'error');
             }
         }
-        // Настройка обработчиков событий для кнопок просмотра
-        function setupViewButtons() {
-            const viewButtons = document.querySelectorAll('.view-employee');
-            
-            viewButtons.forEach(button => {
+        
+        // Настройка обработчиков для кнопок таблицы
+        function setupTableButtons() {
+            // Кнопки просмотра
+            document.querySelectorAll('.view-employee').forEach(button => {
                 button.addEventListener('click', function() {
                     const employeeId = this.dataset.id;
                     openEmployeeInfoModal(employeeId);
                 });
             });
-        }
-        
-        // Настройка обработчиков событий для кнопок редактирования
-        function setupEditButtons() {
-            const editButtons = document.querySelectorAll('.edit-employee');
             
-            editButtons.forEach(button => {
+            // Кнопки редактирования
+            document.querySelectorAll('.edit-employee').forEach(button => {
                 button.addEventListener('click', function() {
                     const employeeId = this.dataset.id;
                     openEmployeeModal(employeeId);
                 });
             });
-        }
-        
-        // Настройка обработчиков событий для кнопок деактивации
-        function setupDeactivateButtons() {
-            const deactivateButtons = document.querySelectorAll('.deactivate-employee');
             
-            deactivateButtons.forEach(button => {
+            // Кнопки деактивации
+            document.querySelectorAll('.deactivate-employee').forEach(button => {
                 button.addEventListener('click', function() {
                     if (this.hasAttribute('disabled')) return;
                     
@@ -943,23 +944,22 @@
                 // Сохраняем ID сотрудника
                 currentEmployeeId = employeeId;
                 
-                // Загружаем данные о сотруднике
-                //await new Promise(resolve => setTimeout(resolve, 500));
-                //const employee = getMockEmployeeDetails(Number(employeeId));
-                const employee = await fetchWithErrorHandling(`${API_BASE_URL}/employees/${employeeId}`);
+                // Загружаем базовые данные о сотруднике
+                const employee = await api.get(`employees/${employeeId}`);
                 
-                const salaryData = await fetchWithErrorHandling(`${API_BASE_URL}/employees/${employeeId}/salary`);
-    
+                // Загружаем данные о зарплате
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const salaryData = await api.get(`employees/${employeeId}/salary`, { month: currentMonth });
+                
                 // Объединяем данные
                 const employeeData = {
                     ...employee,
-                    ...salaryData
+                    ...salaryData,
+                    orders_count: 0, // TODO: Получить из реального API
+                    last_order_date: null, // TODO: Получить из реального API
+                    orders: [], // TODO: Получить из реального API
+                    payments: [] // TODO: Получить из реального API
                 };
-
-                if (!employee) {
-                    showNotification('Сотрудник не найден', 'error');
-                    return;
-                }
                 
                 // Заполняем данные сотрудника
                 document.getElementById('employee-info-title').textContent = `Информация о сотруднике: ${employee.name}`;
@@ -967,23 +967,23 @@
                 document.getElementById('info-employee-name').textContent = employee.name;
                 document.getElementById('info-employee-phone').textContent = employee.phone;
                 document.getElementById('info-employee-type').textContent = employee.employee_type.charAt(0).toUpperCase() + employee.employee_type.slice(1);
-                document.getElementById('info-employee-base-salary').textContent = employee.base_salary !== null ? formatCurrency(employee.base_salary) : '-';
+                document.getElementById('info-employee-base-salary').textContent = employee.base_salary !== null ? formatter.currency(employee.base_salary) : '-';
                 document.getElementById('info-employee-active').textContent = employee.active === 1 ? 'Активный' : 'Неактивный';
-                document.getElementById('info-employee-created').textContent = new Date(employee.created_at).toLocaleDateString('ru-RU');
+                document.getElementById('info-employee-created').textContent = formatter.date(employee.created_at);
                 
                 // Заполняем статистику
-                document.getElementById('info-employee-orders').textContent = employee.orders_count;
-                document.getElementById('info-employee-salary').textContent = formatCurrency(employee.salary);
-                document.getElementById('info-employee-paid').textContent = formatCurrency(employee.paid);
-                document.getElementById('info-employee-to-pay').textContent = formatCurrency(employee.to_pay);
-                document.getElementById('info-employee-last-order').textContent = employee.last_order_date ? new Date(employee.last_order_date).toLocaleDateString('ru-RU') : 'Нет заказов';
+                document.getElementById('info-employee-orders').textContent = employeeData.orders_count || 0;
+                document.getElementById('info-employee-salary').textContent = formatter.currency(salaryData.salary || 0);
+                document.getElementById('info-employee-paid').textContent = formatter.currency(salaryData.paid || 0);
+                document.getElementById('info-employee-to-pay').textContent = formatter.currency(salaryData.to_pay || 0);
+                document.getElementById('info-employee-last-order').textContent = employeeData.last_order_date ? formatter.date(employeeData.last_order_date) : 'Нет заказов';
                 
                 // Заполняем таблицу заказов
                 const ordersTable = document.getElementById('employee-orders-table');
                 ordersTable.innerHTML = '';
                 
-                if (employee.orders && employee.orders.length > 0) {
-                    employee.orders.forEach(order => {
+                if (employeeData.orders && employeeData.orders.length > 0) {
+                    employeeData.orders.forEach(order => {
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         
@@ -1004,18 +1004,13 @@
                                 break;
                         }
                         
-                        // Форматируем дату
-                        const orderDate = new Date(order.date);
-                        const formattedDate = orderDate.toLocaleDateString('ru-RU') + ' ' + 
-                            orderDate.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
-                        
                         row.innerHTML = `
                             <td class="py-3 px-4">#${order.id}</td>
-                            <td class="py-3 px-4">${formattedDate}</td>
+                            <td class="py-3 px-4">${formatter.dateTime(order.date)}</td>
                             <td class="py-3 px-4">${order.client}</td>
                             <td class="py-3 px-4">${order.services}</td>
-                            <td class="py-3 px-4 font-medium">${formatCurrency(order.total_price)}</td>
-                            <td class="py-3 px-4 font-medium">${formatCurrency(order.commission)}</td>
+                            <td class="py-3 px-4 font-medium">${formatter.currency(order.total_price)}</td>
+                            <td class="py-3 px-4 font-medium">${formatter.currency(order.commission)}</td>
                             <td class="py-3 px-4">
                                 <span class="status-pill ${statusClass}">${order.status}</span>
                             </td>
@@ -1035,19 +1030,15 @@
                 const paymentsTable = document.getElementById('employee-payments-table');
                 paymentsTable.innerHTML = '';
                 
-                if (employee.payments && employee.payments.length > 0) {
-                    employee.payments.forEach(payment => {
+                if (employeeData.payments && employeeData.payments.length > 0) {
+                    employeeData.payments.forEach(payment => {
                         const row = document.createElement('tr');
                         row.className = 'hover:bg-gray-50';
                         
-                        // Форматируем дату
-                        const paymentDate = new Date(payment.date);
-                        const formattedDate = paymentDate.toLocaleDateString('ru-RU');
-                        
                         row.innerHTML = `
                             <td class="py-3 px-4">#${payment.id}</td>
-                            <td class="py-3 px-4">${formattedDate}</td>
-                            <td class="py-3 px-4 font-medium">${formatCurrency(payment.amount)}</td>
+                            <td class="py-3 px-4">${formatter.date(payment.date)}</td>
+                            <td class="py-3 px-4 font-medium">${formatter.currency(payment.amount)}</td>
                             <td class="py-3 px-4">${payment.description || '-'}</td>
                         `;
                         
@@ -1066,7 +1057,7 @@
                 
             } catch (error) {
                 console.error('Ошибка при открытии информации о сотруднике:', error);
-                showNotification('Ошибка при загрузке данных сотрудника', 'error');
+                showNotification('Ошибка при загрузке данных сотрудника: ' + error.message, 'error');
             }
         }
         
@@ -1087,12 +1078,7 @@
                     document.getElementById('modal-title').textContent = `Редактирование сотрудника`;
                     
                     // Загружаем данные сотрудника
-                    await new Promise(resolve => setTimeout(resolve, 300));
-                    
-                    // Найдем сотрудника в мок-данных
-                    //const employees = getMockEmployees().employees;
-                    //const employee = employees.find(e => e.id == employeeId);
-                    const employee = await fetchWithErrorHandling(`${API_BASE_URL}/employees/${employeeId}`);
+                    const employee = await api.get(`employees/${employeeId}`);
                     
                     if (employee) {
                         // Заполняем форму данными сотрудника
@@ -1120,7 +1106,7 @@
                 
             } catch (error) {
                 console.error('Ошибка при открытии модального окна:', error);
-                showNotification('Ошибка при загрузке данных сотрудника', 'error');
+                showNotification('Ошибка при загрузке данных сотрудника: ' + error.message, 'error');
             }
         }
         
@@ -1137,7 +1123,7 @@
         }
         
         // Открытие модального окна для добавления выплаты
-        function openPaymentModal() {
+        async function openPaymentModal() {
             try {
                 if (!currentEmployeeId) {
                     showNotification('Ошибка: ID сотрудника не указан', 'error');
@@ -1145,8 +1131,7 @@
                 }
                 
                 // Загружаем данные сотрудника
-                const employees = getMockEmployees().employees;
-                const employee = employees.find(e => e.id == currentEmployeeId);
+                const employee = await api.get(`employees/${currentEmployeeId}`);
                 
                 if (!employee) {
                     showNotification('Сотрудник не найден', 'error');
@@ -1170,7 +1155,7 @@
                 
             } catch (error) {
                 console.error('Ошибка при открытии модального окна выплаты:', error);
-                showNotification('Ошибка при подготовке формы выплаты', 'error');
+                showNotification('Ошибка при подготовке формы выплаты: ' + error.message, 'error');
             }
         }
         
@@ -1178,8 +1163,8 @@
         async function saveEmployee() {
             try {
                 // Проверяем заполнение обязательных полей
-                const name = document.getElementById('employee-name').value;
-                const phone = document.getElementById('employee-phone').value;
+                const name = document.getElementById('employee-name').value.trim();
+                const phone = document.getElementById('employee-phone').value.trim();
                 const employeeType = document.getElementById('employee-type').value;
                 
                 if (!name || !phone || !employeeType) {
@@ -1199,7 +1184,7 @@
                     name: name,
                     phone: phone.replace(/\s/g, ''),
                     employee_type: employeeType,
-                    active: document.querySelector('input[name="employee-active"]:checked').value
+                    active: parseInt(document.querySelector('input[name="employee-active"]:checked').value)
                 };
                 
                 // Добавляем базовую зарплату для менеджера
@@ -1211,22 +1196,12 @@
                 // Отправляем запрос на сервер
                 if (currentEmployeeId) {
                     // Обновление существующего сотрудника
-                    await fetchWithErrorHandling(`${API_BASE_URL}/employees/${currentEmployeeId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
+                    await api.put(`employees/${currentEmployeeId}`, formData);
+                    showNotification(`Сотрудник #${currentEmployeeId} успешно обновлен`, 'success');
                 } else {
                     // Создание нового сотрудника
-                    await fetchWithErrorHandling(`${API_BASE_URL}/employees`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
+                    await api.post('employees', formData);
+                    showNotification('Новый сотрудник успешно создан', 'success');
                 }
                 
                 // Закрываем модальное окно
@@ -1236,16 +1211,9 @@
                 loadEmployees();
                 loadEmployeeStats();
                 
-                // Показываем уведомление об успешном сохранении
-                if (currentEmployeeId) {
-                    showNotification(`Сотрудник #${currentEmployeeId} успешно обновлен`);
-                } else {
-                    showNotification('Новый сотрудник успешно создан');
-                }
-                
             } catch (error) {
                 console.error('Ошибка при сохранении сотрудника:', error);
-                showNotification('Ошибка при сохранении сотрудника', 'error');
+                showNotification('Ошибка при сохранении сотрудника: ' + error.message, 'error');
             }
         }
         
@@ -1258,9 +1226,7 @@
                 }
                 
                 // Отправляем запрос на деактивацию
-                await fetchWithErrorHandling(`${API_BASE_URL}/employees/${currentEmployeeId}/deactivate`, {
-                    method: 'PUT'
-                });
+                await api.put(`employees/${currentEmployeeId}/deactivate`);
                 
                 // Закрываем модальное окно подтверждения
                 document.getElementById('confirm-modal').classList.add('hidden');
@@ -1270,11 +1236,11 @@
                 loadEmployeeStats();
                 
                 // Показываем уведомление об успешной деактивации
-                showNotification(`Сотрудник #${currentEmployeeId} успешно деактивирован`);
+                showNotification(`Сотрудник #${currentEmployeeId} успешно деактивирован`, 'success');
                 
             } catch (error) {
                 console.error('Ошибка при деактивации сотрудника:', error);
-                showNotification('Ошибка при деактивации сотрудника', 'error');
+                showNotification('Ошибка при деактивации сотрудника: ' + error.message, 'error');
             }
         }
         
@@ -1282,7 +1248,7 @@
         async function savePayment() {
             try {
                 // Проверяем заполнение обязательных полей
-                const amount = document.getElementById('payment-amount').value;
+                const amount = document.getElementById('payment-amount').value.trim();
                 const date = document.getElementById('payment-date').value;
                 
                 if (!amount || !date) {
@@ -1297,41 +1263,44 @@
                 }
                 
                 // Собираем данные формы
-                const formData = {
-                    amount: Number(amount),
-                    description: document.getElementById('payment-description').value
-                };
+                const formData = new FormData();
+                formData.append('amount', amount);
+                formData.append('description', document.getElementById('payment-description').value || '');
                 
-                // Отправляем запрос на сервер (с использованием FormData для совместимости с API)
-                const response = await fetchWithErrorHandling(`${API_BASE_URL}/employees/${currentEmployeeId}/pay`, {
+                // Отправляем запрос на сервер
+                const response = await fetch(`${api.baseUrl}/employees/${currentEmployeeId}/pay`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        amount: formData.amount,
-                        description: formData.description || ''
-                    })
+                    body: formData,
+                    credentials: 'include'
                 });
                 
-                // Закрываем модальное окно
-                document.getElementById('payment-modal').classList.add('hidden');
-                
-                // Обновляем информацию о сотруднике (для обновления списка выплат)
-                if (document.getElementById('employee-info-modal').classList.contains('hidden')) {
-                    // Если модальное окно с информацией о сотруднике закрыто, обновляем только список сотрудников
-                    loadEmployees();
-                } else {
-                    // Если открыто, обновляем информацию в нем
-                    openEmployeeInfoModal(currentEmployeeId);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP error: ${response.status}`);
                 }
                 
-                // Показываем уведомление об успешном сохранении
-                showNotification(`Выплата успешно добавлена`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Выплата успешно добавлена', 'success');
+                    
+                    // Закрываем модальное окно
+                    document.getElementById('payment-modal').classList.add('hidden');
+                    
+                    // Обновляем информацию о сотруднике (если модальное окно открыто)
+                    if (!document.getElementById('employee-info-modal').classList.contains('hidden')) {
+                        openEmployeeInfoModal(currentEmployeeId);
+                    } else {
+                        // Обновляем только список сотрудников
+                        loadEmployees();
+                    }
+                } else {
+                    showNotification('Ошибка при добавлении выплаты', 'error');
+                }
                 
             } catch (error) {
                 console.error('Ошибка при сохранении выплаты:', error);
-                showNotification('Ошибка при сохранении выплаты', 'error');
+                showNotification('Ошибка при сохранении выплаты: ' + error.message, 'error');
             }
         }
         
@@ -1347,6 +1316,29 @@
                 baseSalaryContainer.style.display = 'none';
                 document.getElementById('employee-base-salary').value = '';
             }
+        }
+        
+        // Отображение уведомлений
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            if (!notification || !messageElement) return;
+            
+            messageElement.textContent = message;
+            
+            // Устанавливаем класс в зависимости от типа уведомления
+            notification.className = `notification notification-${type}`;
+            
+            // Показываем уведомление
+            setTimeout(() => {
+                notification.classList.add('notification-show');
+            }, 10);
+            
+            // Скрываем через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('notification-show');
+            }, 3000);
         }
         
         // Инициализация страницы
@@ -1393,11 +1385,10 @@
             });
             
             // Обработчики для поиска
-            document.getElementById('search-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    // Реализовать поиск по имени или телефону
-                    showNotification('Функция поиска будет реализована в следующей версии');
-                }
+            document.getElementById('search-input').addEventListener('input', function(e) {
+                // Поиск будет реализован позже при интеграции с API
+                searchQuery = e.target.value;
+                console.log('Поиск:', searchQuery);
             });
             
             // Обработчики для модального окна сотрудника
