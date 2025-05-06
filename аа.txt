@@ -1,0 +1,214 @@
+// components/Layout.tsx
+import { Layout, Menu } from 'antd';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import type { MenuProps } from 'antd';
+
+const { Header, Content } = Layout;
+
+const items: MenuProps['items'] = [
+  { label: <Link href="/">Дашборд</Link>, key: '/' },
+  { label: <Link href="/orders">Заказы</Link>, key: '/orders' },
+  { label: <Link href="/clients">Клиенты</Link>, key: '/clients' },
+  { label: <Link href="/finances">Финансы</Link>, key: '/finances' },
+];
+
+const AppLayout = ({ children }: { children: React.ReactNode }) => {
+  const { pathname } = useRouter();
+  return (
+    <Layout>
+      <Header>
+        <Menu
+          theme="dark"
+          mode="horizontal"
+          selectedKeys={[pathname]}
+          items={items}
+        />
+      </Header>
+      <Content style={{ padding: '24px' }}>{children}</Content>
+    </Layout>
+  );
+};
+
+export default AppLayout;
+
+// pages/_app.tsx
+import AppLayout from '@/components/Layout';
+import '@/styles/globals.css';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import type { AppProps } from 'next/app';
+
+const queryClient = new QueryClient();
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppLayout>
+        <Component {...pageProps} />
+      </AppLayout>
+    </QueryClientProvider>
+  );
+}
+
+// pages/orders.tsx
+import { Table, Button, Form, Input, Modal } from 'antd';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import axios from 'axios';
+import { useState } from 'react';
+
+const fetchOrders = async () => {
+  const { data } = await axios.get('/api/orders');
+  return data;
+};
+
+const createOrder = async (order: any) => {
+  const { data } = await axios.post('/api/orders', order);
+  return data;
+};
+
+export default function Orders() {
+  const { data, isLoading } = useQuery('orders', fetchOrders);
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  const mutation = useMutation(createOrder, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('orders');
+      setIsModalOpen(false);
+      form.resetFields();
+    },
+  });
+
+  const columns = [
+    { title: 'ID', dataIndex: 'id' },
+    { title: 'Клиент', dataIndex: 'name' },
+    { title: 'Сумма', dataIndex: 'total' },
+  ];
+
+  return (
+    <div>
+      <h1>Заказы</h1>
+      <Button type="primary" onClick={() => setIsModalOpen(true)} style={{ marginBottom: 16 }}>
+        Добавить заказ
+      </Button>
+      <Table columns={columns} dataSource={data} loading={isLoading} rowKey="id" />
+
+      <Modal
+        title="Новый заказ"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        onOk={() => form.submit()}
+      >
+        <Form form={form} layout="vertical" onFinish={(values) => mutation.mutate(values)}>
+          <Form.Item name="name" label="Клиент" rules={[{ required: true }]}> 
+            <Input />
+          </Form.Item>
+          <Form.Item name="total" label="Сумма" rules={[{ required: true }]}> 
+            <Input type="number" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+}
+
+// pages/clients.tsx
+import { Table, Button, Form, Input, Modal } from 'antd';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import axios from 'axios';
+import { useState } from 'react';
+
+const fetchClients = async () => {
+  const { data } = await axios.get('/api/clients');
+  return data;
+};
+
+const createClient = async (client: any) => {
+  const { data } = await axios.post('/api/clients', client);
+  return data;
+};
+
+export default function Clients() {
+  const { data, isLoading } = useQuery('clients', fetchClients);
+  const queryClient = useQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form] = Form.useForm();
+
+  const mutation = useMutation(createClient, {
+    onSuccess: () => {
+      queryClient.invalidateQueries('clients');
+      setIsModalOpen(false);
+      form.resetFields();
+    },
+  });
+
+  const columns = [
+    { title: 'ID', dataIndex: 'id' },
+    { title: 'Имя', dataIndex: 'name' },
+    { title: 'Телефон', dataIndex: 'phone' },
+  ];
+
+  return (
+    <div>
+      <h1>Клиенты</h1>
+      <Button type="primary" onClick={() => setIsModalOpen(true)} style={{ marginBottom: 16 }}>
+        Добавить клиента
+      </Button>
+      <Table columns={columns} dataSource={data} loading={isLoading} rowKey="id" />
+
+      <Modal
+        title="Новый клиент"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        onOk={() => form.submit()}
+      >
+        <Form form={form} layout="vertical" onFinish={(values) => mutation.mutate(values)}>
+          <Form.Item name="name" label="Имя" rules={[{ required: true }]}> 
+            <Input />
+          </Form.Item>
+          <Form.Item name="phone" label="Телефон" rules={[{ required: true }]}> 
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+}
+
+// pages/finances.tsx
+import { Card, Col, Row, Statistic } from 'antd';
+import { useQuery } from 'react-query';
+import axios from 'axios';
+
+const fetchSummary = async () => {
+  const { data } = await axios.get('/api/summary');
+  return data;
+};
+
+export default function Finances() {
+  const { data, isLoading } = useQuery('summary', fetchSummary);
+
+  return (
+    <div>
+      <h1>Финансы</h1>
+      <Row gutter={16}>
+        <Col span={8}>
+          <Card loading={isLoading} bordered={false} style={{ borderRadius: 8 }}>
+            <Statistic title="Выручка" value={data?.revenue || 0} suffix="₽" />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card loading={isLoading} bordered={false} style={{ borderRadius: 8 }}>
+            <Statistic title="Расходы" value={data?.expenses || 0} suffix="₽" />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card loading={isLoading} bordered={false} style={{ borderRadius: 8 }}>
+            <Statistic title="Прибыль" value={data?.profit || 0} suffix="₽" />
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+}
