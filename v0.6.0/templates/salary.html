@@ -9,7 +9,100 @@
     <!-- Подключаем Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Подключаем наш файл со стилями -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        /* Стили для анимации загрузки */
+        .loader {
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Стили для уведомлений */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease-in-out;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification-success {
+            background-color: #10b981;
+        }
+
+        .notification-error {
+            background-color: #ef4444;
+        }
+
+        .notification-info {
+            background-color: #3b82f6;
+        }
+
+        /* Стили для загрузки */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        /* Стили для активных кнопок */
+        .btn-loading {
+            position: relative;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Стили для меню */
+        .menu-item.active {
+            background-color: #f3f4f6;
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        /* Стили для таблицы */
+        @media (max-width: 768px) {
+            .responsive-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -40,11 +133,11 @@
                     <i class="fas fa-user-check mr-3"></i>
                     Сотрудники
                 </a>
-                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                <a href="/salary" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="salary">
                     <i class="fas fa-money-bill-wave mr-3"></i>
                     Зарплаты
                 </a>
-                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                <a href="/finance" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="finance">
                     <i class="fas fa-chart-line mr-3"></i>
                     Финансы
                 </a>
@@ -90,7 +183,7 @@
                     </button>
                     
                     <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
-                        АК
+                        А
                     </div>
                 </div>
             </header>
@@ -101,7 +194,7 @@
                     <label class="block text-sm font-medium text-gray-500 mb-2">Месяц расчета</label>
                     <div class="relative">
                         <select id="month-select" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="2025-05">Май 2025</option>
+                            <option value="2025-05" selected>Май 2025</option>
                             <option value="2025-04">Апрель 2025</option>
                             <option value="2025-03">Март 2025</option>
                             <option value="2025-02">Февраль 2025</option>
@@ -178,7 +271,7 @@
             <!-- Таблица сотрудников -->
             <div id="employees-table-container" class="p-6 hidden">
                 <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto responsive-table">
                         <table class="w-full">
                             <thead class="bg-gray-50 text-gray-600 text-sm">
                                 <tr>
@@ -266,6 +359,8 @@
                                 id="payment-amount" 
                                 class="pl-8 p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
                                 placeholder="0.00"
+                                step="0.01"
+                                min="0"
                                 required
                             >
                         </div>
@@ -299,27 +394,32 @@
         <span id="notification-message"></span>
     </div>
 
-    <!-- Подключаем JavaScript -->
-    <script src="js/api.js"></script>
-    <script src="js/ui.js"></script>
-
     <!-- JavaScript для страницы зарплат -->
     <script>
     // API клиент
     const api = {
-        baseUrl: 'http://localhost:8000/api',
+        baseUrl: window.location.hostname === 'localhost' ? 'http://localhost:8000/api' : '/api',
         
         async get(endpoint, params = {}) {
             try {
-                // Формируем URL с параметрами
                 const url = new URL(`${this.baseUrl}/${endpoint}`);
-                Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
                 
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
+                });
                 
-                // Обработка ошибок HTTP
                 if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP error: ${response.status}`);
                 }
                 
                 return await response.json();
@@ -334,14 +434,16 @@
                 const response = await fetch(`${this.baseUrl}/${endpoint}`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(data),
+                    credentials: 'include'
                 });
                 
-                // Обработка ошибок HTTP
                 if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP error: ${response.status}`);
                 }
                 
                 return await response.json();
@@ -353,21 +455,25 @@
         
         // Получение списка сотрудников с зарплатами
         async getEmployeesWithSalary(employeeType, month) {
-            return this.get('employees/list', { 
-                employee_type: employeeType || null,
-                month: month
-            });
+            const params = {};
+            if (employeeType) params.employee_type = employeeType;
+            if (month) params.month = month;
+            
+            return this.get('employees/list', params);
         },
         
         // Получение детализации зарплаты сотрудника
         async getEmployeeSalary(employeeId, month) {
-            return this.get(`employees/${employeeId}/salary`, { month });
+            const params = {};
+            if (month) params.month = month;
+            
+            return this.get(`employees/${employeeId}/salary`, params);
         },
         
         // Выплата зарплаты сотруднику
         async payEmployee(employeeId, amount, description) {
             const formData = new FormData();
-            formData.append('amount', amount);
+            formData.append('amount', amount.toString());
             
             if (description) {
                 formData.append('description', description);
@@ -375,11 +481,13 @@
             
             const response = await fetch(`${this.baseUrl}/employees/${employeeId}/pay`, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'include'
             });
             
             if (!response.ok) {
-                throw new Error(`HTTP error: ${response.status}`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP error: ${response.status}`);
             }
             
             return await response.json();
@@ -388,7 +496,6 @@
 
     // Форматирование данных
     const formatter = {
-        // Форматирование валюты
         currency(value) {
             return new Intl.NumberFormat('ru-RU', {
                 style: 'currency',
@@ -397,7 +504,6 @@
             }).format(value);
         },
         
-        // Форматирование даты
         date(dateString) {
             return new Date(dateString).toLocaleDateString('ru-RU');
         }
@@ -405,22 +511,18 @@
 
     // Компонент страницы зарплат
     const salaryPage = {
-        // Текущие фильтры
         filters: {
-            month: document.getElementById('month-select').value,
-            employeeType: document.getElementById('employee-type-select').value
+            month: '2025-05',
+            employeeType: ''
         },
         
-        // Данные о сотрудниках и зарплатах
         employeesData: [],
         
-        // Инициализация страницы
         init() {
             this.setupEventListeners();
             this.loadEmployeesData();
         },
         
-        // Настройка обработчиков событий
         setupEventListeners() {
             // Изменение месяца
             document.getElementById('month-select').addEventListener('change', (e) => {
@@ -436,6 +538,8 @@
             
             // Кнопка обновления
             document.getElementById('refresh-btn').addEventListener('click', () => {
+                this.filters.month = document.getElementById('month-select').value;
+                this.filters.employeeType = document.getElementById('employee-type-select').value;
                 this.loadEmployeesData();
             });
             
@@ -474,9 +578,24 @@
             document.getElementById('confirm-payment-btn').addEventListener('click', () => {
                 this.processPayment();
             });
+            
+            // Закрытие модального окна по клику вне его
+            ['salary-details-modal', 'payment-modal'].forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            if (modalId === 'salary-details-modal') {
+                                this.closeDetailsModal();
+                            } else {
+                                this.closePaymentModal();
+                            }
+                        }
+                    });
+                }
+            });
         },
         
-        // Загрузка данных о сотрудниках и зарплатах
         async loadEmployeesData() {
             try {
                 this.showLoading();
@@ -488,7 +607,6 @@
                 
                 this.employeesData = employees;
                 
-                // Проверяем, есть ли данные
                 if (total_count === 0) {
                     this.showNoDataMessage();
                     this.updateSummaryCards(0, 0, 0);
@@ -496,9 +614,9 @@
                 }
                 
                 // Обновляем итоговые суммы
-                const totalSalary = employees.reduce((sum, emp) => sum + emp.salary, 0);
-                const totalPaid = employees.reduce((sum, emp) => sum + emp.paid, 0);
-                const totalToPay = employees.reduce((sum, emp) => sum + emp.to_pay, 0);
+                const totalSalary = employees.reduce((sum, emp) => sum + (emp.salary || 0), 0);
+                const totalPaid = employees.reduce((sum, emp) => sum + (emp.paid || 0), 0);
+                const totalToPay = employees.reduce((sum, emp) => sum + (emp.to_pay || 0), 0);
                 
                 this.updateSummaryCards(totalSalary, totalPaid, totalToPay);
                 
@@ -510,7 +628,7 @@
                 document.getElementById('no-data-message').classList.add('hidden');
             } catch (error) {
                 console.error('Ошибка при загрузке данных о зарплатах:', error);
-                this.showNotification('Ошибка при загрузке данных о зарплатах', 'error');
+                this.showNotification('Ошибка при загрузке данных о зарплатах: ' + error.message, 'error');
                 this.hideLoading();
                 this.showNoDataMessage();
             }
@@ -537,7 +655,7 @@
                 const nameClass = isActive ? '' : 'text-gray-400';
                 
                 // Расчет комиссий (дополнительные выплаты помимо базовой ставки)
-                const commissions = employee.order_payments + employee.additional_commission + employee.ac_commission;
+                const commissions = (employee.order_payments || 0) + (employee.additional_commission || 0) + (employee.ac_commission || 0);
                 
                 row.innerHTML = `
                     <td class="py-4 px-6">
@@ -547,7 +665,7 @@
                             </div>
                             <div class="ml-3">
                                 <p class="text-sm font-medium ${nameClass}">${employee.name}</p>
-                                <p class="text-xs text-gray-500">${employee.phone}</p>
+                                <p class="text-xs text-gray-500">${employee.phone || '-'}</p>
                             </div>
                         </div>
                     </td>
@@ -557,27 +675,27 @@
                         </span>
                     </td>
                     <td class="py-4 px-6 text-sm">
-                        ${formatter.currency(employee.base_salary_amount)}
+                        ${formatter.currency(employee.base_salary_amount || employee.base_salary || 0)}
                     </td>
                     <td class="py-4 px-6 text-sm">
                         ${formatter.currency(commissions)}
                     </td>
                     <td class="py-4 px-6 text-sm font-medium">
-                        ${formatter.currency(employee.salary)}
+                        ${formatter.currency(employee.salary || 0)}
                     </td>
                     <td class="py-4 px-6 text-sm text-blue-600">
-                        ${formatter.currency(employee.paid)}
+                        ${formatter.currency(employee.paid || 0)}
                     </td>
-                    <td class="py-4 px-6 text-sm font-medium ${employee.to_pay > 0 ? 'text-green-600' : 'text-gray-500'}">
-                        ${formatter.currency(employee.to_pay)}
+                    <td class="py-4 px-6 text-sm font-medium ${(employee.to_pay || 0) > 0 ? 'text-green-600' : 'text-gray-500'}">
+                        ${formatter.currency(employee.to_pay || 0)}
                     </td>
                     <td class="py-4 px-6">
                         <div class="flex space-x-2">
-                            <button class="text-blue-600 hover:text-blue-800" data-employee-id="${employee.id}" data-action="details">
+                            <button class="text-blue-600 hover:text-blue-800 p-1" data-employee-id="${employee.id}" data-action="details" title="Детализация">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            ${employee.to_pay > 0 ? `
-                                <button class="text-green-600 hover:text-green-800" data-employee-id="${employee.id}" data-action="pay">
+                            ${(employee.to_pay || 0) > 0 ? `
+                                <button class="text-green-600 hover:text-green-800 p-1" data-employee-id="${employee.id}" data-action="pay" title="Выплатить">
                                     <i class="fas fa-money-bill-wave"></i>
                                 </button>
                             ` : ''}
@@ -589,14 +707,16 @@
                 
                 // Добавляем обработчики событий для кнопок
                 const detailsBtn = row.querySelector('button[data-action="details"]');
-                detailsBtn.addEventListener('click', () => {
-                    this.openDetailsModal(employee.id);
-                });
+                if (detailsBtn) {
+                    detailsBtn.addEventListener('click', () => {
+                        this.openDetailsModal(employee.id);
+                    });
+                }
                 
                 const payBtn = row.querySelector('button[data-action="pay"]');
                 if (payBtn) {
                     payBtn.addEventListener('click', () => {
-                        this.openPaymentModal(employee.id, employee.name, employee.to_pay);
+                        this.openPaymentModal(employee.id, employee.name, employee.to_pay || 0);
                     });
                 }
             });
@@ -604,7 +724,10 @@
         
         // Получение инициалов имени
         getInitials(name) {
+            if (!name) return '?';
+            
             return name
+                .trim()
                 .split(' ')
                 .map(part => part.charAt(0).toUpperCase())
                 .join('')
@@ -643,8 +766,8 @@
             const lowercaseQuery = query.toLowerCase();
             
             const filteredEmployees = this.employeesData.filter(employee => 
-                employee.name.toLowerCase().includes(lowercaseQuery) || 
-                employee.phone.includes(lowercaseQuery)
+                (employee.name || '').toLowerCase().includes(lowercaseQuery) || 
+                (employee.phone || '').includes(lowercaseQuery)
             );
             
             this.renderEmployeesTable(filteredEmployees);
@@ -653,8 +776,10 @@
         // Открытие модального окна с детализацией зарплаты
         async openDetailsModal(employeeId) {
             try {
-                // Показываем индикатор загрузки внутри модального окна
                 const detailsContent = document.getElementById('salary-details-content');
+                const modal = document.getElementById('salary-details-modal');
+                
+                // Показываем индикатор загрузки
                 detailsContent.innerHTML = `
                     <div class="flex justify-center items-center py-10">
                         <div class="loader"></div>
@@ -663,32 +788,32 @@
                 `;
                 
                 // Отображаем модальное окно
-                document.getElementById('salary-details-modal').classList.remove('hidden');
-                document.getElementById('salary-details-modal').dataset.employeeId = employeeId;
+                modal.classList.remove('hidden');
+                modal.dataset.employeeId = employeeId;
                 
                 // Получаем детализацию зарплаты
                 const salaryDetails = await api.getEmployeeSalary(employeeId, this.filters.month);
                 
                 // Обновляем заголовок
-                document.getElementById('modal-employee-name').textContent = salaryDetails.employee.name;
+                document.getElementById('modal-employee-name').textContent = salaryDetails.employee.name || 'Сотрудник';
                 
                 // Обновляем атрибут с суммой к выплате
-                document.getElementById('salary-details-modal').dataset.toPay = salaryDetails.to_pay;
+                modal.dataset.toPay = (salaryDetails.to_pay || 0).toString();
                 
                 // Формируем контент с детализацией
                 detailsContent.innerHTML = `
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <div class="bg-blue-50 rounded-lg p-4">
                             <h3 class="text-sm font-medium text-gray-500">Всего заработано</h3>
-                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.salary)}</p>
+                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.salary || 0)}</p>
                         </div>
                         <div class="bg-green-50 rounded-lg p-4">
                             <h3 class="text-sm font-medium text-gray-500">Выплачено</h3>
-                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.paid)}</p>
+                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.paid || 0)}</p>
                         </div>
                         <div class="bg-yellow-50 rounded-lg p-4">
                             <h3 class="text-sm font-medium text-gray-500">К выплате</h3>
-                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.to_pay)}</p>
+                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.to_pay || 0)}</p>
                         </div>
                     </div>
                     
@@ -697,40 +822,43 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500">Базовая ставка</h4>
-                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.base_salary)}</p>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.base_salary || 0)}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500">Комиссия за заказы</h4>
-                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.order_payments)}</p>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.order_payments || 0)}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500">Комиссия за доп. услуги</h4>
-                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.additional_commission)}</p>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.additional_commission || 0)}</p>
                             </div>
                             <div>
                                 <h4 class="text-sm font-medium text-gray-500">Комиссия за кондиционеры</h4>
-                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.ac_commission)}</p>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.ac_commission || 0)}</p>
                             </div>
                         </div>
                     </div>
                     
                     <h3 class="font-semibold text-lg mb-4">Детализация по заказам</h3>
-                    ${this.renderOrdersBreakdown(salaryDetails.details.breakdown.orders)}
+                    ${this.renderOrdersBreakdown(salaryDetails.details.breakdown ? salaryDetails.details.breakdown.orders : [])}
                     
                     <h3 class="font-semibold text-lg mb-4 mt-6">История выплат</h3>
-                    ${this.renderPaymentsHistory(salaryDetails.details.breakdown.payments)}
+                    ${this.renderPaymentsHistory(salaryDetails.details.breakdown ? salaryDetails.details.breakdown.payments : [])}
                 `;
                 
                 // Скрываем кнопку выплаты, если нечего выплачивать
-                if (salaryDetails.to_pay <= 0) {
-                    document.getElementById('pay-salary-btn').classList.add('hidden');
-                } else {
-                    document.getElementById('pay-salary-btn').classList.remove('hidden');
+                const payBtn = document.getElementById('pay-salary-btn');
+                if (payBtn) {
+                    if ((salaryDetails.to_pay || 0) <= 0) {
+                        payBtn.classList.add('hidden');
+                    } else {
+                        payBtn.classList.remove('hidden');
+                    }
                 }
                 
             } catch (error) {
                 console.error('Ошибка при получении детализации зарплаты:', error);
-                this.showNotification('Ошибка при получении детализации зарплаты', 'error');
+                this.showNotification('Ошибка при получении детализации зарплаты: ' + error.message, 'error');
                 this.closeDetailsModal();
             }
         },
@@ -755,10 +883,10 @@
                         <tbody class="divide-y">
                             ${orders.map(order => `
                                 <tr class="hover:bg-gray-50">
-                                    <td class="py-2 px-4 text-sm">#${order.id}</td>
-                                    <td class="py-2 px-4 text-sm">${formatter.date(order.date)}</td>
-                                    <td class="py-2 px-4 text-sm">${order.type}</td>
-                                    <td class="py-2 px-4 text-sm font-medium">${formatter.currency(order.amount)}</td>
+                                    <td class="py-2 px-4 text-sm">#${order.id || '?'}</td>
+                                    <td class="py-2 px-4 text-sm">${order.date ? formatter.date(order.date) : '-'}</td>
+                                    <td class="py-2 px-4 text-sm">${order.type || '-'}</td>
+                                    <td class="py-2 px-4 text-sm font-medium">${formatter.currency(order.amount || 0)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -787,10 +915,10 @@
                         <tbody class="divide-y">
                             ${payments.map(payment => `
                                 <tr class="hover:bg-gray-50">
-                                    <td class="py-2 px-4 text-sm">#${payment.id}</td>
-                                    <td class="py-2 px-4 text-sm">${formatter.date(payment.date)}</td>
+                                    <td class="py-2 px-4 text-sm">#${payment.id || '?'}</td>
+                                    <td class="py-2 px-4 text-sm">${payment.date ? formatter.date(payment.date) : '-'}</td>
                                     <td class="py-2 px-4 text-sm">${payment.description || 'Выплата'}</td>
-                                    <td class="py-2 px-4 text-sm font-medium ${payment.amount < 0 ? 'text-red-600' : 'text-green-600'}">${formatter.currency(payment.amount)}</td>
+                                    <td class="py-2 px-4 text-sm font-medium ${(payment.amount || 0) < 0 ? 'text-red-600' : 'text-green-600'}">${formatter.currency(payment.amount || 0)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -808,18 +936,31 @@
         openPaymentModal(employeeId, employeeName, amount) {
             document.getElementById('payment-employee-id').value = employeeId;
             document.getElementById('payment-employee-name').textContent = employeeName;
-            document.getElementById('payment-amount').value = amount.toFixed(2);
+            document.getElementById('payment-amount').value = amount > 0 ? amount.toFixed(2) : '';
             
             // Устанавливаем описание по умолчанию
             const monthName = this.getMonthName(this.filters.month);
             document.getElementById('payment-description').value = `Зарплата за ${monthName}`;
             
             document.getElementById('payment-modal').classList.remove('hidden');
+            
+            // Фокусируемся на поле суммы
+            const amountInput = document.getElementById('payment-amount');
+            if (amountInput) {
+                amountInput.focus();
+                amountInput.select();
+            }
         },
         
         // Закрытие модального окна выплаты
         closePaymentModal() {
             document.getElementById('payment-modal').classList.add('hidden');
+            
+            // Сбрасываем форму
+            const form = document.getElementById('payment-form');
+            if (form) {
+                form.reset();
+            }
         },
         
         // Обработка выплаты
@@ -827,7 +968,7 @@
             try {
                 const employeeId = document.getElementById('payment-employee-id').value;
                 const amount = parseFloat(document.getElementById('payment-amount').value);
-                const description = document.getElementById('payment-description').value;
+                const description = document.getElementById('payment-description').value.trim();
                 
                 if (!employeeId || isNaN(amount) || amount <= 0) {
                     this.showNotification('Пожалуйста, введите корректную сумму выплаты', 'error');
@@ -836,11 +977,13 @@
                 
                 // Отключаем кнопку на время запроса
                 const confirmBtn = document.getElementById('confirm-payment-btn');
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Обработка...';
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Обработка...';
+                }
                 
                 // Выполняем запрос к API
-                const result = await api.payEmployee(employeeId, amount, description);
+                const result = await api.payEmployee(employeeId, amount, description || 'Выплата зарплаты');
                 
                 if (result.success) {
                     this.showNotification('Выплата успешно произведена', 'success');
@@ -848,39 +991,52 @@
                     this.closeDetailsModal();
                     this.loadEmployeesData(); // Перезагружаем данные
                 } else {
-                    this.showNotification('Ошибка при выполнении выплаты', 'error');
+                    this.showNotification('Ошибка при выполнении выплаты: ' + (result.message || 'Неизвестная ошибка'), 'error');
                 }
-                
-                // Восстанавливаем кнопку
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = 'Подтвердить выплату';
                 
             } catch (error) {
                 console.error('Ошибка при выполнении выплаты:', error);
-                this.showNotification('Ошибка при выполнении выплаты', 'error');
-                
+                this.showNotification('Ошибка при выполнении выплаты: ' + error.message, 'error');
+            } finally {
                 // Восстанавливаем кнопку
                 const confirmBtn = document.getElementById('confirm-payment-btn');
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = 'Подтвердить выплату';
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = 'Подтвердить выплату';
+                }
             }
         },
         
         // Экспорт данных о зарплатах
         exportSalaryData() {
-            const params = new URLSearchParams({
-                format: 'xlsx',
-                employee_type: this.filters.employeeType,
-                month: this.filters.month
-            });
-            
-            // Формируем URL для экспорта
-            const exportUrl = `${api.baseUrl}/export/employees?${params.toString()}`;
-            
-            // Открываем URL в новой вкладке для скачивания
-            window.open(exportUrl, '_blank');
-            
-            this.showNotification('Экспорт данных о зарплатах запущен', 'success');
+            try {
+                // Создаем URL для экспорта
+                const params = new URLSearchParams();
+                params.append('format', 'xlsx');
+                
+                if (this.filters.employeeType) {
+                    params.append('employee_type', this.filters.employeeType);
+                }
+                
+                if (this.filters.month) {
+                    params.append('month', this.filters.month);
+                }
+                
+                const exportUrl = `${api.baseUrl}/export/employees?${params.toString()}`;
+                
+                // Создаем временную ссылку для скачивания
+                const link = document.createElement('a');
+                link.href = exportUrl;
+                link.download = `salary_report_${this.filters.month}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showNotification('Экспорт данных о зарплатах запущен', 'success');
+            } catch (error) {
+                console.error('Ошибка при экспорте данных:', error);
+                this.showNotification('Ошибка при экспорте данных: ' + error.message, 'error');
+            }
         },
         
         // Отображение индикатора загрузки
@@ -906,10 +1062,17 @@
             const notification = document.getElementById('notification');
             const messageElement = document.getElementById('notification-message');
             
+            if (!notification || !messageElement) return;
+            
             messageElement.textContent = message;
             
             // Устанавливаем класс в зависимости от типа уведомления
-            notification.className = `notification notification-${type} notification-show`;
+            notification.className = `notification notification-${type}`;
+            
+            // Показываем уведомление
+            setTimeout(() => {
+                notification.classList.add('notification-show');
+            }, 10);
             
             // Скрываем через 3 секунды
             setTimeout(() => {
@@ -919,15 +1082,21 @@
         
         // Получение названия месяца
         getMonthName(monthValue) {
+            if (!monthValue) return '';
+            
             const [year, month] = monthValue.split('-');
-            const monthIndex = parseInt(month) - 1;
+            const monthIndex = parseInt(month, 10) - 1;
             
             const monthNames = [
                 'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
                 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
             ];
             
-            return `${monthNames[monthIndex]} ${year}`;
+            if (monthIndex >= 0 && monthIndex < monthNames.length) {
+                return `${monthNames[monthIndex]} ${year}`;
+            }
+            
+            return monthValue;
         }
     };
 
