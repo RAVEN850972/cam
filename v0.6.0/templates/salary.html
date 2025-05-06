@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КондCRM - Зарплаты</title>
+    <!-- Подключаем Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Подключаем Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Подключаем наш файл со стилями -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Боковое меню -->
+        <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">КондCRM</h1>
+            </div>
+            
+            <nav class="mt-6 flex-1">
+                <a href="/" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Дашборд
+                </a>
+                <a href="/orders" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="orders">
+                    <i class="fas fa-shopping-bag mr-3"></i>
+                    Заказы
+                </a>
+                <a href="/clients" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="clients">
+                    <i class="fas fa-users mr-3"></i>
+                    Клиенты
+                </a>
+                <a href="/services" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="services">
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Услуги
+                </a>
+                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                    <i class="fas fa-user-check mr-3"></i>
+                    Сотрудники
+                </a>
+                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Зарплаты
+                </a>
+                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Финансы
+                </a>
+                <a href="/export" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="export">
+                    <i class="fas fa-download mr-3"></i>
+                    Экспорт данных
+                </a>
+                <a href="#" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="settings">
+                    <i class="fas fa-cog mr-3"></i>
+                    Настройки
+                </a>
+            </nav>
+            
+            <div class="mx-6 mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold">Обновите до PRO</h3>
+                <p class="text-sm text-gray-600 mt-2">Получите доступ к дополнительным функциям и аналитике</p>
+                <button class="mt-4 bg-blue-600 text-white w-full py-2 rounded font-medium hover:bg-blue-700 transition">
+                    Обновить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="flex-1 overflow-auto">
+            <!-- Верхняя панель -->
+            <header class="bg-white p-6 flex items-center justify-between border-b sticky top-0 z-10">
+                <h1 class="text-2xl font-bold">Зарплаты сотрудников</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Поиск сотрудника..."
+                            class="pl-10 pr-4 py-2 border rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="search-input"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                        АК
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Фильтры и выбор месяца -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Месяц расчета</label>
+                    <div class="relative">
+                        <select id="month-select" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="2025-05">Май 2025</option>
+                            <option value="2025-04">Апрель 2025</option>
+                            <option value="2025-03">Март 2025</option>
+                            <option value="2025-02">Февраль 2025</option>
+                            <option value="2025-01">Январь 2025</option>
+                            <option value="2024-12">Декабрь 2024</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-calendar text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Тип сотрудника</label>
+                    <div class="relative">
+                        <select id="employee-type-select" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="">Все типы</option>
+                            <option value="менеджер">Менеджеры</option>
+                            <option value="монтажник">Монтажники</option>
+                            <option value="владелец">Владельцы</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-users text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 shadow-sm flex justify-end items-end">
+                    <button id="refresh-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded mr-2">
+                        <i class="fas fa-sync-alt mr-1"></i> Обновить
+                    </button>
+                    <button id="export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                        <i class="fas fa-file-export mr-1"></i> Экспорт
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Карточки с общей информацией -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 px-6">
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Общая сумма к выплате</h3>
+                        <i class="fas fa-money-bill-wave text-green-500 text-xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold mt-2" id="total-to-pay">₽ 0</p>
+                    <p class="text-sm text-gray-500 mt-1">За выбранный месяц</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Уже выплачено</h3>
+                        <i class="fas fa-check-circle text-blue-500 text-xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold mt-2" id="total-paid">₽ 0</p>
+                    <p class="text-sm text-gray-500 mt-1">За выбранный месяц</p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Осталось выплатить</h3>
+                        <i class="fas fa-clock text-yellow-500 text-xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold mt-2" id="total-remaining">₽ 0</p>
+                    <p class="text-sm text-gray-500 mt-1">За выбранный месяц</p>
+                </div>
+            </div>
+            
+            <!-- Индикатор загрузки -->
+            <div id="employees-loading" class="loading mt-6">
+                <div class="loader"></div>
+                <span>Загрузка данных о зарплатах...</span>
+            </div>
+            
+            <!-- Таблица сотрудников -->
+            <div id="employees-table-container" class="p-6 hidden">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="py-4 px-6 text-left font-medium">Сотрудник</th>
+                                    <th class="py-4 px-6 text-left font-medium">Тип</th>
+                                    <th class="py-4 px-6 text-left font-medium">Базовая ставка</th>
+                                    <th class="py-4 px-6 text-left font-medium">Комиссии</th>
+                                    <th class="py-4 px-6 text-left font-medium">Итого заработано</th>
+                                    <th class="py-4 px-6 text-left font-medium">Выплачено</th>
+                                    <th class="py-4 px-6 text-left font-medium">К выплате</th>
+                                    <th class="py-4 px-6 text-left font-medium">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="employees-table-body">
+                                <!-- Данные будут добавлены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Уведомление об отсутствии данных -->
+            <div id="no-data-message" class="p-6 hidden">
+                <div class="bg-white rounded-lg shadow-sm p-8 text-center">
+                    <i class="fas fa-info-circle text-blue-500 text-4xl mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Нет данных о зарплатах</h3>
+                    <p class="text-gray-600 mb-6">В выбранном месяце нет данных о зарплатах сотрудников.</p>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                        Рассчитать зарплаты
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно детализации зарплаты -->
+    <div id="salary-details-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-3xl max-h-screen overflow-y-auto">
+            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+                <h2 class="text-xl font-bold" id="modal-employee-name">Детализация зарплаты</h2>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6" id="salary-details-content">
+                <!-- Данные будут добавлены через JavaScript -->
+            </div>
+            
+            <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3 sticky bottom-0">
+                <button id="close-details-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2 rounded">
+                    Закрыть
+                </button>
+                <button id="pay-salary-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">
+                    <i class="fas fa-money-bill-wave mr-1"></i> Произвести выплату
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно выплаты -->
+    <div id="payment-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md">
+            <div class="p-6 border-b">
+                <h2 class="text-xl font-bold">Выплата зарплаты</h2>
+            </div>
+            
+            <div class="p-6">
+                <form id="payment-form">
+                    <input type="hidden" id="payment-employee-id" value="">
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Сотрудник</label>
+                        <div class="p-3 bg-gray-100 rounded" id="payment-employee-name">
+                            Имя сотрудника
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="payment-amount" class="block text-sm font-medium text-gray-700 mb-2">Сумма выплаты</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₽</span>
+                            <input 
+                                type="number" 
+                                id="payment-amount" 
+                                class="pl-8 p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                                placeholder="0.00"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="payment-description" class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                        <textarea 
+                            id="payment-description" 
+                            class="p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                            rows="3"
+                            placeholder="Зарплата за май 2025"
+                        ></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+                <button id="cancel-payment-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2 rounded">
+                    Отмена
+                </button>
+                <button id="confirm-payment-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">
+                    Подтвердить выплату
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+
+    <!-- JavaScript для страницы зарплат -->
+    <script>
+    // API клиент
+    const api = {
+        baseUrl: 'http://localhost:8000/api',
+        
+        async get(endpoint, params = {}) {
+            try {
+                // Формируем URL с параметрами
+                const url = new URL(`${this.baseUrl}/${endpoint}`);
+                Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+                
+                const response = await fetch(url);
+                
+                // Обработка ошибок HTTP
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error(`API Error (GET ${endpoint}):`, error);
+                throw error;
+            }
+        },
+        
+        async post(endpoint, data) {
+            try {
+                const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                // Обработка ошибок HTTP
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error(`API Error (POST ${endpoint}):`, error);
+                throw error;
+            }
+        },
+        
+        // Получение списка сотрудников с зарплатами
+        async getEmployeesWithSalary(employeeType, month) {
+            return this.get('employees/list', { 
+                employee_type: employeeType || null,
+                month: month
+            });
+        },
+        
+        // Получение детализации зарплаты сотрудника
+        async getEmployeeSalary(employeeId, month) {
+            return this.get(`employees/${employeeId}/salary`, { month });
+        },
+        
+        // Выплата зарплаты сотруднику
+        async payEmployee(employeeId, amount, description) {
+            const formData = new FormData();
+            formData.append('amount', amount);
+            
+            if (description) {
+                formData.append('description', description);
+            }
+            
+            const response = await fetch(`${this.baseUrl}/employees/${employeeId}/pay`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+        }
+    };
+
+    // Форматирование данных
+    const formatter = {
+        // Форматирование валюты
+        currency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                maximumFractionDigits: 0
+            }).format(value);
+        },
+        
+        // Форматирование даты
+        date(dateString) {
+            return new Date(dateString).toLocaleDateString('ru-RU');
+        }
+    };
+
+    // Компонент страницы зарплат
+    const salaryPage = {
+        // Текущие фильтры
+        filters: {
+            month: document.getElementById('month-select').value,
+            employeeType: document.getElementById('employee-type-select').value
+        },
+        
+        // Данные о сотрудниках и зарплатах
+        employeesData: [],
+        
+        // Инициализация страницы
+        init() {
+            this.setupEventListeners();
+            this.loadEmployeesData();
+        },
+        
+        // Настройка обработчиков событий
+        setupEventListeners() {
+            // Изменение месяца
+            document.getElementById('month-select').addEventListener('change', (e) => {
+                this.filters.month = e.target.value;
+                this.loadEmployeesData();
+            });
+            
+            // Изменение типа сотрудника
+            document.getElementById('employee-type-select').addEventListener('change', (e) => {
+                this.filters.employeeType = e.target.value;
+                this.loadEmployeesData();
+            });
+            
+            // Кнопка обновления
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                this.loadEmployeesData();
+            });
+            
+            // Кнопка экспорта
+            document.getElementById('export-btn').addEventListener('click', () => {
+                this.exportSalaryData();
+            });
+            
+            // Поиск
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                this.filterEmployeesBySearch(e.target.value);
+            });
+            
+            // Обработчики для модального окна детализации
+            document.getElementById('close-modal-btn').addEventListener('click', () => {
+                this.closeDetailsModal();
+            });
+            
+            document.getElementById('close-details-btn').addEventListener('click', () => {
+                this.closeDetailsModal();
+            });
+            
+            document.getElementById('pay-salary-btn').addEventListener('click', () => {
+                const employeeId = document.getElementById('salary-details-modal').dataset.employeeId;
+                const employeeName = document.getElementById('modal-employee-name').textContent;
+                const toPay = parseFloat(document.getElementById('salary-details-modal').dataset.toPay || 0);
+                
+                this.openPaymentModal(employeeId, employeeName, toPay);
+            });
+            
+            // Обработчики для модального окна выплаты
+            document.getElementById('cancel-payment-btn').addEventListener('click', () => {
+                this.closePaymentModal();
+            });
+            
+            document.getElementById('confirm-payment-btn').addEventListener('click', () => {
+                this.processPayment();
+            });
+        },
+        
+        // Загрузка данных о сотрудниках и зарплатах
+        async loadEmployeesData() {
+            try {
+                this.showLoading();
+                
+                const { employees, total_count, month } = await api.getEmployeesWithSalary(
+                    this.filters.employeeType,
+                    this.filters.month
+                );
+                
+                this.employeesData = employees;
+                
+                // Проверяем, есть ли данные
+                if (total_count === 0) {
+                    this.showNoDataMessage();
+                    this.updateSummaryCards(0, 0, 0);
+                    return;
+                }
+                
+                // Обновляем итоговые суммы
+                const totalSalary = employees.reduce((sum, emp) => sum + emp.salary, 0);
+                const totalPaid = employees.reduce((sum, emp) => sum + emp.paid, 0);
+                const totalToPay = employees.reduce((sum, emp) => sum + emp.to_pay, 0);
+                
+                this.updateSummaryCards(totalSalary, totalPaid, totalToPay);
+                
+                // Обновляем таблицу
+                this.renderEmployeesTable(employees);
+                
+                this.hideLoading();
+                document.getElementById('employees-table-container').classList.remove('hidden');
+                document.getElementById('no-data-message').classList.add('hidden');
+            } catch (error) {
+                console.error('Ошибка при загрузке данных о зарплатах:', error);
+                this.showNotification('Ошибка при загрузке данных о зарплатах', 'error');
+                this.hideLoading();
+                this.showNoDataMessage();
+            }
+        },
+        
+        // Обновление карточек с итоговыми суммами
+        updateSummaryCards(totalSalary, totalPaid, totalToPay) {
+            document.getElementById('total-to-pay').textContent = formatter.currency(totalSalary);
+            document.getElementById('total-paid').textContent = formatter.currency(totalPaid);
+            document.getElementById('total-remaining').textContent = formatter.currency(totalToPay);
+        },
+        
+        // Отображение таблицы сотрудников
+        renderEmployeesTable(employees) {
+            const tableBody = document.getElementById('employees-table-body');
+            tableBody.innerHTML = '';
+            
+            employees.forEach(employee => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                // Проверяем, активен ли сотрудник
+                const isActive = employee.active === 1;
+                const nameClass = isActive ? '' : 'text-gray-400';
+                
+                // Расчет комиссий (дополнительные выплаты помимо базовой ставки)
+                const commissions = employee.order_payments + employee.additional_commission + employee.ac_commission;
+                
+                row.innerHTML = `
+                    <td class="py-4 px-6">
+                        <div class="flex items-center">
+                            <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+                                ${this.getInitials(employee.name)}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium ${nameClass}">${employee.name}</p>
+                                <p class="text-xs text-gray-500">${employee.phone}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${this.getEmployeeTypeClass(employee.employee_type)}">
+                            ${this.getEmployeeTypeName(employee.employee_type)}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-sm">
+                        ${formatter.currency(employee.base_salary_amount)}
+                    </td>
+                    <td class="py-4 px-6 text-sm">
+                        ${formatter.currency(commissions)}
+                    </td>
+                    <td class="py-4 px-6 text-sm font-medium">
+                        ${formatter.currency(employee.salary)}
+                    </td>
+                    <td class="py-4 px-6 text-sm text-blue-600">
+                        ${formatter.currency(employee.paid)}
+                    </td>
+                    <td class="py-4 px-6 text-sm font-medium ${employee.to_pay > 0 ? 'text-green-600' : 'text-gray-500'}">
+                        ${formatter.currency(employee.to_pay)}
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="flex space-x-2">
+                            <button class="text-blue-600 hover:text-blue-800" data-employee-id="${employee.id}" data-action="details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${employee.to_pay > 0 ? `
+                                <button class="text-green-600 hover:text-green-800" data-employee-id="${employee.id}" data-action="pay">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+                
+                // Добавляем обработчики событий для кнопок
+                const detailsBtn = row.querySelector('button[data-action="details"]');
+                detailsBtn.addEventListener('click', () => {
+                    this.openDetailsModal(employee.id);
+                });
+                
+                const payBtn = row.querySelector('button[data-action="pay"]');
+                if (payBtn) {
+                    payBtn.addEventListener('click', () => {
+                        this.openPaymentModal(employee.id, employee.name, employee.to_pay);
+                    });
+                }
+            });
+        },
+        
+        // Получение инициалов имени
+        getInitials(name) {
+            return name
+                .split(' ')
+                .map(part => part.charAt(0).toUpperCase())
+                .join('')
+                .substring(0, 2);
+        },
+        
+        // Получение класса стиля для типа сотрудника
+        getEmployeeTypeClass(type) {
+            const classes = {
+                'менеджер': 'bg-blue-100 text-blue-800',
+                'монтажник': 'bg-green-100 text-green-800',
+                'владелец': 'bg-purple-100 text-purple-800'
+            };
+            
+            return classes[type] || 'bg-gray-100 text-gray-800';
+        },
+        
+        // Получение названия типа сотрудника
+        getEmployeeTypeName(type) {
+            const names = {
+                'менеджер': 'Менеджер',
+                'монтажник': 'Монтажник',
+                'владелец': 'Владелец'
+            };
+            
+            return names[type] || type;
+        },
+        
+        // Фильтрация сотрудников по поисковому запросу
+        filterEmployeesBySearch(query) {
+            if (!query) {
+                this.renderEmployeesTable(this.employeesData);
+                return;
+            }
+            
+            const lowercaseQuery = query.toLowerCase();
+            
+            const filteredEmployees = this.employeesData.filter(employee => 
+                employee.name.toLowerCase().includes(lowercaseQuery) || 
+                employee.phone.includes(lowercaseQuery)
+            );
+            
+            this.renderEmployeesTable(filteredEmployees);
+        },
+        
+        // Открытие модального окна с детализацией зарплаты
+        async openDetailsModal(employeeId) {
+            try {
+                // Показываем индикатор загрузки внутри модального окна
+                const detailsContent = document.getElementById('salary-details-content');
+                detailsContent.innerHTML = `
+                    <div class="flex justify-center items-center py-10">
+                        <div class="loader"></div>
+                        <span class="ml-3">Загрузка детализации зарплаты...</span>
+                    </div>
+                `;
+                
+                // Отображаем модальное окно
+                document.getElementById('salary-details-modal').classList.remove('hidden');
+                document.getElementById('salary-details-modal').dataset.employeeId = employeeId;
+                
+                // Получаем детализацию зарплаты
+                const salaryDetails = await api.getEmployeeSalary(employeeId, this.filters.month);
+                
+                // Обновляем заголовок
+                document.getElementById('modal-employee-name').textContent = salaryDetails.employee.name;
+                
+                // Обновляем атрибут с суммой к выплате
+                document.getElementById('salary-details-modal').dataset.toPay = salaryDetails.to_pay;
+                
+                // Формируем контент с детализацией
+                detailsContent.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h3 class="text-sm font-medium text-gray-500">Всего заработано</h3>
+                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.salary)}</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h3 class="text-sm font-medium text-gray-500">Выплачено</h3>
+                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.paid)}</p>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <h3 class="text-sm font-medium text-gray-500">К выплате</h3>
+                            <p class="text-2xl font-bold mt-1">${formatter.currency(salaryDetails.to_pay)}</p>
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-semibold text-lg mb-4">Структура зарплаты</h3>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Базовая ставка</h4>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.base_salary)}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Комиссия за заказы</h4>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.order_payments)}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Комиссия за доп. услуги</h4>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.additional_commission)}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-500">Комиссия за кондиционеры</h4>
+                                <p class="text-lg font-semibold">${formatter.currency(salaryDetails.details.ac_commission)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="font-semibold text-lg mb-4">Детализация по заказам</h3>
+                    ${this.renderOrdersBreakdown(salaryDetails.details.breakdown.orders)}
+                    
+                    <h3 class="font-semibold text-lg mb-4 mt-6">История выплат</h3>
+                    ${this.renderPaymentsHistory(salaryDetails.details.breakdown.payments)}
+                `;
+                
+                // Скрываем кнопку выплаты, если нечего выплачивать
+                if (salaryDetails.to_pay <= 0) {
+                    document.getElementById('pay-salary-btn').classList.add('hidden');
+                } else {
+                    document.getElementById('pay-salary-btn').classList.remove('hidden');
+                }
+                
+            } catch (error) {
+                console.error('Ошибка при получении детализации зарплаты:', error);
+                this.showNotification('Ошибка при получении детализации зарплаты', 'error');
+                this.closeDetailsModal();
+            }
+        },
+        
+        // Формирование HTML для детализации по заказам
+        renderOrdersBreakdown(orders) {
+            if (!orders || orders.length === 0) {
+                return `<p class="text-gray-500 italic">Нет данных о заказах за выбранный период</p>`;
+            }
+            
+            return `
+                <div class="bg-white border rounded-lg overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 text-gray-600 text-sm">
+                            <tr>
+                                <th class="py-2 px-4 text-left font-medium">ID заказа</th>
+                                <th class="py-2 px-4 text-left font-medium">Дата</th>
+                                <th class="py-2 px-4 text-left font-medium">Тип комиссии</th>
+                                <th class="py-2 px-4 text-left font-medium">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            ${orders.map(order => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-2 px-4 text-sm">#${order.id}</td>
+                                    <td class="py-2 px-4 text-sm">${formatter.date(order.date)}</td>
+                                    <td class="py-2 px-4 text-sm">${order.type}</td>
+                                    <td class="py-2 px-4 text-sm font-medium">${formatter.currency(order.amount)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        },
+        
+        // Формирование HTML для истории выплат
+        renderPaymentsHistory(payments) {
+            if (!payments || payments.length === 0) {
+                return `<p class="text-gray-500 italic">Нет данных о выплатах за выбранный период</p>`;
+            }
+            
+            return `
+                <div class="bg-white border rounded-lg overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 text-gray-600 text-sm">
+                            <tr>
+                                <th class="py-2 px-4 text-left font-medium">ID</th>
+                                <th class="py-2 px-4 text-left font-medium">Дата</th>
+                                <th class="py-2 px-4 text-left font-medium">Описание</th>
+                                <th class="py-2 px-4 text-left font-medium">Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            ${payments.map(payment => `
+                                <tr class="hover:bg-gray-50">
+                                    <td class="py-2 px-4 text-sm">#${payment.id}</td>
+                                    <td class="py-2 px-4 text-sm">${formatter.date(payment.date)}</td>
+                                    <td class="py-2 px-4 text-sm">${payment.description || 'Выплата'}</td>
+                                    <td class="py-2 px-4 text-sm font-medium ${payment.amount < 0 ? 'text-red-600' : 'text-green-600'}">${formatter.currency(payment.amount)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        },
+        
+        // Закрытие модального окна детализации
+        closeDetailsModal() {
+            document.getElementById('salary-details-modal').classList.add('hidden');
+        },
+        
+        // Открытие модального окна выплаты
+        openPaymentModal(employeeId, employeeName, amount) {
+            document.getElementById('payment-employee-id').value = employeeId;
+            document.getElementById('payment-employee-name').textContent = employeeName;
+            document.getElementById('payment-amount').value = amount.toFixed(2);
+            
+            // Устанавливаем описание по умолчанию
+            const monthName = this.getMonthName(this.filters.month);
+            document.getElementById('payment-description').value = `Зарплата за ${monthName}`;
+            
+            document.getElementById('payment-modal').classList.remove('hidden');
+        },
+        
+        // Закрытие модального окна выплаты
+        closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        },
+        
+        // Обработка выплаты
+        async processPayment() {
+            try {
+                const employeeId = document.getElementById('payment-employee-id').value;
+                const amount = parseFloat(document.getElementById('payment-amount').value);
+                const description = document.getElementById('payment-description').value;
+                
+                if (!employeeId || isNaN(amount) || amount <= 0) {
+                    this.showNotification('Пожалуйста, введите корректную сумму выплаты', 'error');
+                    return;
+                }
+                
+                // Отключаем кнопку на время запроса
+                const confirmBtn = document.getElementById('confirm-payment-btn');
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Обработка...';
+                
+                // Выполняем запрос к API
+                const result = await api.payEmployee(employeeId, amount, description);
+                
+                if (result.success) {
+                    this.showNotification('Выплата успешно произведена', 'success');
+                    this.closePaymentModal();
+                    this.closeDetailsModal();
+                    this.loadEmployeesData(); // Перезагружаем данные
+                } else {
+                    this.showNotification('Ошибка при выполнении выплаты', 'error');
+                }
+                
+                // Восстанавливаем кнопку
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Подтвердить выплату';
+                
+            } catch (error) {
+                console.error('Ошибка при выполнении выплаты:', error);
+                this.showNotification('Ошибка при выполнении выплаты', 'error');
+                
+                // Восстанавливаем кнопку
+                const confirmBtn = document.getElementById('confirm-payment-btn');
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = 'Подтвердить выплату';
+            }
+        },
+        
+        // Экспорт данных о зарплатах
+        exportSalaryData() {
+            const params = new URLSearchParams({
+                format: 'xlsx',
+                employee_type: this.filters.employeeType,
+                month: this.filters.month
+            });
+            
+            // Формируем URL для экспорта
+            const exportUrl = `${api.baseUrl}/export/employees?${params.toString()}`;
+            
+            // Открываем URL в новой вкладке для скачивания
+            window.open(exportUrl, '_blank');
+            
+            this.showNotification('Экспорт данных о зарплатах запущен', 'success');
+        },
+        
+        // Отображение индикатора загрузки
+        showLoading() {
+            document.getElementById('employees-loading').classList.remove('hidden');
+            document.getElementById('employees-table-container').classList.add('hidden');
+            document.getElementById('no-data-message').classList.add('hidden');
+        },
+        
+        // Скрытие индикатора загрузки
+        hideLoading() {
+            document.getElementById('employees-loading').classList.add('hidden');
+        },
+        
+        // Отображение сообщения об отсутствии данных
+        showNoDataMessage() {
+            document.getElementById('employees-table-container').classList.add('hidden');
+            document.getElementById('no-data-message').classList.remove('hidden');
+        },
+        
+        // Отображение уведомления
+        showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            messageElement.textContent = message;
+            
+            // Устанавливаем класс в зависимости от типа уведомления
+            notification.className = `notification notification-${type} notification-show`;
+            
+            // Скрываем через 3 секунды
+            setTimeout(() => {
+                notification.classList.remove('notification-show');
+            }, 3000);
+        },
+        
+        // Получение названия месяца
+        getMonthName(monthValue) {
+            const [year, month] = monthValue.split('-');
+            const monthIndex = parseInt(month) - 1;
+            
+            const monthNames = [
+                'январь', 'февраль', 'март', 'апрель', 'май', 'июнь',
+                'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'
+            ];
+            
+            return `${monthNames[monthIndex]} ${year}`;
+        }
+    };
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        salaryPage.init();
+    });
+    </script>
+</body>
+</html>

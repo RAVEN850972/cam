@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КондCRM - Экспорт данных</title>
+    <!-- Подключаем Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Подключаем Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Подключаем наш файл со стилями -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Боковое меню -->
+        <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">КондCRM</h1>
+            </div>
+            
+            <nav class="mt-6 flex-1">
+                <a href="/" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Дашборд
+                </a>
+                <a href="/orders" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="orders">
+                    <i class="fas fa-shopping-bag mr-3"></i>
+                    Заказы
+                </a>
+                <a href="/clients" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="clients">
+                    <i class="fas fa-users mr-3"></i>
+                    Клиенты
+                </a>
+                <a href="/services" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="services">
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Услуги
+                </a>
+                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                    <i class="fas fa-user-check mr-3"></i>
+                    Сотрудники
+                </a>
+                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Зарплаты
+                </a>
+                <a href="/finance" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="finance">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Финансы
+                </a>
+                <a href="/export" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="export">
+                    <i class="fas fa-download mr-3"></i>
+                    Экспорт данных
+                </a>
+                <a href="#" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="settings">
+                    <i class="fas fa-cog mr-3"></i>
+                    Настройки
+                </a>
+            </nav>
+            
+            <div class="mx-6 mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold">Обновите до PRO</h3>
+                <p class="text-sm text-gray-600 mt-2">Получите доступ к дополнительным функциям и аналитике</p>
+                <button class="mt-4 bg-blue-600 text-white w-full py-2 rounded font-medium hover:bg-blue-700 transition">
+                    Обновить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="flex-1 overflow-auto">
+            <!-- Верхняя панель -->
+            <header class="bg-white p-6 flex items-center justify-between border-b sticky top-0 z-10">
+                <h1 class="text-2xl font-bold">Экспорт данных</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                        АК
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Информационная панель -->
+            <div class="p-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-lg font-semibold mb-2">Экспорт данных из CRM</h2>
+                    <p class="text-gray-600 mb-4">
+                        Выберите тип данных и настройте параметры экспорта. Файлы будут сохранены в выбранном формате.
+                    </p>
+                    <div class="flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        <p>Доступны форматы <span class="font-medium">CSV</span> и <span class="font-medium">Excel (XLSX)</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Табы с типами данных -->
+            <div class="px-6">
+                <div class="bg-white rounded-t-lg shadow-sm overflow-hidden">
+                    <div class="border-b">
+                        <nav class="flex -mb-px" aria-label="Tabs">
+                            <button class="export-tab-btn active py-4 px-6 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="orders">
+                                <i class="fas fa-shopping-bag mr-2"></i>
+                                Заказы
+                            </button>
+                            <button class="export-tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-tab="clients">
+                                <i class="fas fa-users mr-2"></i>
+                                Клиенты
+                            </button>
+                            <button class="export-tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-tab="services">
+                                <i class="fas fa-briefcase mr-2"></i>
+                                Услуги
+                            </button>
+                            <button class="export-tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-tab="employees">
+                                <i class="fas fa-user-check mr-2"></i>
+                                Сотрудники
+                            </button>
+                            <button class="export-tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-tab="finances">
+                                <i class="fas fa-chart-line mr-2"></i>
+                                Финансы
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Контент вкладок -->
+            <div class="px-6 pb-6">
+                <!-- Форма экспорта заказов -->
+                <div id="orders-tab" class="export-tab-content bg-white rounded-b-lg shadow-sm p-6">
+                    <form id="orders-export-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="orders-format" class="block text-sm font-medium text-gray-700 mb-2">Формат файла</label>
+                                <select id="orders-format" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">Excel (XLSX)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="orders-status" class="block text-sm font-medium text-gray-700 mb-2">Статус заказа</label>
+                                <select id="orders-status" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Все статусы</option>
+                                    <option value="новый">Новый</option>
+                                    <option value="в работе">В работе</option>
+                                    <option value="завершен">Завершен</option>
+                                    <option value="отменен">Отменен</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="orders-client" class="block text-sm font-medium text-gray-700 mb-2">Клиент</label>
+                                <input type="text" id="orders-client" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Имя клиента">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="orders-date-from" class="block text-sm font-medium text-gray-700 mb-2">Дата начала периода</label>
+                                <input type="date" id="orders-date-from" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            </div>
+                            
+                            <div>
+                                <label for="orders-date-to" class="block text-sm font-medium text-gray-700 mb-2">Дата окончания периода</label>
+                                <input type="date" id="orders-date-to" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium text-gray-700 mb-2">Предварительный просмотр данных</h3>
+                            <div class="border rounded p-4 bg-gray-50 max-h-52 overflow-y-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="text-left py-2 px-3 font-medium">ID</th>
+                                            <th class="text-left py-2 px-3 font-medium">Клиент</th>
+                                            <th class="text-left py-2 px-3 font-medium">Дата</th>
+                                            <th class="text-left py-2 px-3 font-medium">Статус</th>
+                                            <th class="text-left py-2 px-3 font-medium">Сумма</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orders-preview">
+                                        <!-- Данные будут добавлены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="orders-preview-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded">
+                                <i class="fas fa-eye mr-1"></i> Предпросмотр
+                            </button>
+                            <button type="button" id="orders-export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                                <i class="fas fa-download mr-1"></i> Экспортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Форма экспорта клиентов -->
+                <div id="clients-tab" class="export-tab-content bg-white rounded-b-lg shadow-sm p-6 hidden">
+                    <form id="clients-export-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="clients-format" class="block text-sm font-medium text-gray-700 mb-2">Формат файла</label>
+                                <select id="clients-format" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">Excel (XLSX)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="clients-source" class="block text-sm font-medium text-gray-700 mb-2">Источник</label>
+                                <select id="clients-source" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Все источники</option>
+                                    <option value="Авито">Авито</option>
+                                    <option value="ВК">ВК</option>
+                                    <option value="Яндекс услуги">Яндекс услуги</option>
+                                    <option value="Листовки">Листовки</option>
+                                    <option value="Рекомендации">Рекомендации</option>
+                                    <option value="Другое">Другое</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="clients-search" class="block text-sm font-medium text-gray-700 mb-2">Поиск</label>
+                                <input type="text" id="clients-search" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Имя или телефон">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium text-gray-700 mb-2">Предварительный просмотр данных</h3>
+                            <div class="border rounded p-4 bg-gray-50 max-h-52 overflow-y-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="text-left py-2 px-3 font-medium">ID</th>
+                                            <th class="text-left py-2 px-3 font-medium">Имя</th>
+                                            <th class="text-left py-2 px-3 font-medium">Телефон</th>
+                                            <th class="text-left py-2 px-3 font-medium">Источник</th>
+                                            <th class="text-left py-2 px-3 font-medium">Заказов</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="clients-preview">
+                                        <!-- Данные будут добавлены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="clients-preview-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded">
+                                <i class="fas fa-eye mr-1"></i> Предпросмотр
+                            </button>
+                            <button type="button" id="clients-export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                                <i class="fas fa-download mr-1"></i> Экспортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Форма экспорта услуг -->
+                <div id="services-tab" class="export-tab-content bg-white rounded-b-lg shadow-sm p-6 hidden">
+                    <form id="services-export-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="services-format" class="block text-sm font-medium text-gray-700 mb-2">Формат файла</label>
+                                <select id="services-format" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">Excel (XLSX)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="services-category" class="block text-sm font-medium text-gray-700 mb-2">Категория</label>
+                                <select id="services-category" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Все категории</option>
+                                    <option value="Монтаж">Монтаж</option>
+                                    <option value="Кондиционер">Кондиционер</option>
+                                    <option value="Монтажный комплект">Монтажный комплект</option>
+                                    <option value="Виброопора">Виброопора</option>
+                                    <option value="Доп услуга">Доп услуга</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="services-search" class="block text-sm font-medium text-gray-700 mb-2">Поиск</label>
+                                <input type="text" id="services-search" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Название услуги">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium text-gray-700 mb-2">Предварительный просмотр данных</h3>
+                            <div class="border rounded p-4 bg-gray-50 max-h-52 overflow-y-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="text-left py-2 px-3 font-medium">ID</th>
+                                            <th class="text-left py-2 px-3 font-medium">Название</th>
+                                            <th class="text-left py-2 px-3 font-medium">Категория</th>
+                                            <th class="text-left py-2 px-3 font-medium">Закупочная цена</th>
+                                            <th class="text-left py-2 px-3 font-medium">Продажная цена</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="services-preview">
+                                        <!-- Данные будут добавлены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="services-preview-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded">
+                                <i class="fas fa-eye mr-1"></i> Предпросмотр
+                            </button>
+                            <button type="button" id="services-export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                                <i class="fas fa-download mr-1"></i> Экспортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Форма экспорта сотрудников -->
+                <div id="employees-tab" class="export-tab-content bg-white rounded-b-lg shadow-sm p-6 hidden">
+                    <form id="employees-export-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="employees-format" class="block text-sm font-medium text-gray-700 mb-2">Формат файла</label>
+                                <select id="employees-format" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">Excel (XLSX)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="employees-type" class="block text-sm font-medium text-gray-700 mb-2">Тип сотрудника</label>
+                                <select id="employees-type" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Все типы</option>
+                                    <option value="менеджер">Менеджеры</option>
+                                    <option value="монтажник">Монтажники</option>
+                                    <option value="владелец">Владельцы</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="employees-month" class="block text-sm font-medium text-gray-700 mb-2">Месяц расчета зарплаты</label>
+                                <input type="month" id="employees-month" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" value="2025-05">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="employees-active" class="block text-sm font-medium text-gray-700 mb-2">Статус</label>
+                                <select id="employees-active" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Все сотрудники</option>
+                                    <option value="1">Только активные</option>
+                                    <option value="0">Только неактивные</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="employees-include-salary" class="flex items-center pt-8">
+                                    <input type="checkbox" id="employees-include-salary" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                    <span class="ml-2 text-sm font-medium text-gray-700">Включить данные о зарплате</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium text-gray-700 mb-2">Предварительный просмотр данных</h3>
+                            <div class="border rounded p-4 bg-gray-50 max-h-52 overflow-y-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="text-left py-2 px-3 font-medium">ID</th>
+                                            <th class="text-left py-2 px-3 font-medium">Имя</th>
+                                            <th class="text-left py-2 px-3 font-medium">Телефон</th>
+                                            <th class="text-left py-2 px-3 font-medium">Тип</th>
+                                            <th class="text-left py-2 px-3 font-medium">Зарплата</th>
+                                            <th class="text-left py-2 px-3 font-medium">Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="employees-preview">
+                                        <!-- Данные будут добавлены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="employees-preview-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded">
+                                <i class="fas fa-eye mr-1"></i> Предпросмотр
+                            </button>
+                            <button type="button" id="employees-export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                                <i class="fas fa-download mr-1"></i> Экспортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Форма экспорта финансов -->
+                <div id="finances-tab" class="export-tab-content bg-white rounded-b-lg shadow-sm p-6 hidden">
+                    <form id="finances-export-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="finances-format" class="block text-sm font-medium text-gray-700 mb-2">Формат файла</label>
+                                <select id="finances-format" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="csv">CSV</option>
+                                    <option value="xlsx">Excel (XLSX)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="finances-date-from" class="block text-sm font-medium text-gray-700 mb-2">Дата начала периода</label>
+                                <input type="date" id="finances-date-from" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            </div>
+                            
+                            <div>
+                                <label for="finances-date-to" class="block text-sm font-medium text-gray-700 mb-2">Дата окончания периода</label>
+                                <input type="date" id="finances-date-to" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="finances-include-summary" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                    <span class="ml-2 text-sm font-medium text-gray-700">Включить финансовую сводку</span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="finances-include-transactions" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                    <span class="ml-2 text-sm font-medium text-gray-700">Включить историю транзакций</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-medium text-gray-700 mb-2">Предварительный просмотр данных</h3>
+                            <div class="border rounded p-4 bg-gray-50 max-h-52 overflow-y-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="text-left py-2 px-3 font-medium">ID</th>
+                                            <th class="text-left py-2 px-3 font-medium">Дата</th>
+                                            <th class="text-left py-2 px-3 font-medium">Тип</th>
+                                            <th class="text-left py-2 px-3 font-medium">Источник</th>
+                                            <th class="text-left py-2 px-3 font-medium">Сумма</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="finances-preview">
+                                        <!-- Данные будут добавлены через JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" id="finances-preview-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded">
+                                <i class="fas fa-eye mr-1"></i> Предпросмотр
+                            </button>
+                            <button type="button" id="finances-export-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded">
+                                <i class="fas fa-download mr-1"></i> Экспортировать
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- История экспорта -->
+            <div class="p-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="text-lg font-semibold mb-4">История экспорта</h2>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="text-left py-3 px-4 font-medium">Дата</th>
+                                    <th class="text-left py-3 px-4 font-medium">Тип данных</th>
+                                    <th class="text-left py-3 px-4 font-medium">Формат</th>
+                                    <th class="text-left py-3 px-4 font-medium">Пользователь</th>
+                                    <th class="text-left py-3 px-4 font-medium">Файл</th>
+                                    <th class="text-left py-3 px-4 font-medium">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="export-history-table">
+                                <!-- Данные будут добавлены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Отображение, когда нет данных -->
+                    <div id="no-history-message" class="text-center py-8 text-gray-500 hidden">
+                        <i class="fas fa-history text-gray-300 text-4xl mb-2"></i>
+                        <p>История экспорта пуста</p>
+                    </div>
+                    
+                    <!-- Загрузка истории -->
+                    <div id="history-loading" class="text-center py-8 hidden">
+                        <div class="loader mx-auto"></div>
+                        <p class="mt-2 text-gray-500">Загрузка истории...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script>
+        // API клиент для работы с реальным API
+        // API клиент для работы с реальным API
+        const api = {
+            // Изменяем baseUrl, чтобы включить протокол - это решит основную проблему
+            baseUrl: 'http://localhost:8000/api',
+            
+            async get(endpoint, params = {}) {
+                try {
+                    // Формируем URL с параметрами - теперь с корректным базовым URL
+                    const url = new URL(`${this.baseUrl}/${endpoint}`);
+                    Object.keys(params).forEach(key => {
+                        // Добавляем проверку, чтобы пропускать пустые параметры
+                        if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+                            url.searchParams.append(key, params[key]);
+                        }
+                    });
+                    
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (GET ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            async post(endpoint, data) {
+                try {
+                    // Исправляем URL здесь также
+                    const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data),
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (POST ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            async delete(endpoint, params = {}) {
+                try {
+                    // Исправляем URL здесь также
+                    const url = new URL(`${this.baseUrl}/${endpoint}`);
+                    Object.keys(params).forEach(key => {
+                        if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+                            url.searchParams.append(key, params[key]);
+                        }
+                    });
+                    
+                    const response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (DELETE ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            // Методы для получения данных для предпросмотра
+            async previewOrders(params) {
+                // Добавляем ограничение по количеству записей
+                params.limit = 3;
+                return this.get('orders', params);
+            },
+            
+            async previewClients(params) {
+                params.limit = 3;
+                return this.get('clients', params);
+            },
+            
+            async previewServices(params) {
+                params.limit = 3;
+                return this.get('services', params);
+            },
+            
+            async previewEmployees(params) {
+                params.limit = 3;
+                return this.get('employees', params); // Исправляем endpoint
+            },
+            
+            async previewFinances(params) {
+                params.limit = 3;
+                return this.get('finance/transactions', params);
+            }
+        };
+
+        // Компонент страницы экспорта
+        const exportPage = {
+            // Текущая активная вкладка
+            currentTab: 'orders',
+            
+            // Инициализация страницы
+            init() {
+                this.setupEventListeners();
+                this.setupDateDefaults();
+            },
+            
+            // Настройка обработчиков событий
+            setupEventListeners() {
+                // Переключение вкладок
+                document.querySelectorAll('.export-tab-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.switchTab(btn.dataset.tab);
+                    });
+                });
+                
+                // Кнопки предпросмотра
+                document.getElementById('orders-preview-btn').addEventListener('click', () => {
+                    this.previewData('orders');
+                });
+                
+                document.getElementById('clients-preview-btn').addEventListener('click', () => {
+                    this.previewData('clients');
+                });
+                
+                document.getElementById('services-preview-btn').addEventListener('click', () => {
+                    this.previewData('services');
+                });
+                
+                document.getElementById('employees-preview-btn').addEventListener('click', () => {
+                    this.previewData('employees');
+                });
+                
+                document.getElementById('finances-preview-btn').addEventListener('click', () => {
+                    this.previewData('finances');
+                });
+                
+                // Кнопки экспорта
+                document.getElementById('orders-export-btn').addEventListener('click', () => {
+                    this.exportData('orders');
+                });
+                
+                document.getElementById('clients-export-btn').addEventListener('click', () => {
+                    this.exportData('clients');
+                });
+                
+                document.getElementById('services-export-btn').addEventListener('click', () => {
+                    this.exportData('services');
+                });
+                
+                document.getElementById('employees-export-btn').addEventListener('click', () => {
+                    this.exportData('employees');
+                });
+                
+                document.getElementById('finances-export-btn').addEventListener('click', () => {
+                    this.exportData('finances');
+                });
+            },
+            
+            // Установка значений дат по умолчанию
+            setupDateDefaults() {
+                // Даты для заказов
+                const today = new Date();
+                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                
+                document.getElementById('orders-date-from').valueAsDate = startOfMonth;
+                document.getElementById('orders-date-to').valueAsDate = endOfMonth;
+                
+                // Даты для финансов
+                document.getElementById('finances-date-from').valueAsDate = startOfMonth;
+                document.getElementById('finances-date-to').valueAsDate = endOfMonth;
+                
+                // Месяц для сотрудников
+                const month = today.toISOString().substring(0, 7); // Формат YYYY-MM
+                document.getElementById('employees-month').value = month;
+            },
+            
+            // Переключение вкладок
+            switchTab(tabName) {
+                // Обновляем активную кнопку вкладки
+                document.querySelectorAll('.export-tab-btn').forEach(btn => {
+                    if (btn.dataset.tab === tabName) {
+                        btn.classList.add('active', 'border-blue-500', 'text-blue-600');
+                        btn.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    } else {
+                        btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                        btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                    }
+                });
+                
+                // Скрываем все контейнеры с содержимым вкладок
+                document.querySelectorAll('.export-tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Показываем содержимое выбранной вкладки
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+                
+                // Обновляем текущую вкладку
+                this.currentTab = tabName;
+            },
+            
+            // Предпросмотр данных
+            async previewData(type) {
+                try {
+                    let data;
+                    
+                    // Получаем параметры формы
+                    const params = this.getFormParams(type);
+                    
+                    // Выполняем запрос в зависимости от типа данных
+                    switch (type) {
+                        case 'orders':
+                            data = await api.previewOrders(params);
+                            this.updateOrdersPreview(data.orders);
+                            break;
+                        case 'clients':
+                            data = await api.previewClients(params);
+                            this.updateClientsPreview(data.clients);
+                            break;
+                        case 'services':
+                            data = await api.previewServices(params);
+                            this.updateServicesPreview(data.services);
+                            break;
+                        case 'employees':
+                            data = await api.previewEmployees(params);
+                            this.updateEmployeesPreview(data.employees);
+                            break;
+                        case 'finances':
+                            data = await api.previewFinances(params);
+                            this.updateFinancesPreview(data.transactions);
+                            break;
+                    }
+                    
+                    this.showNotification(`Предпросмотр данных "${this.getTypeName(type)}" успешно загружен`, 'success');
+                } catch (error) {
+                    console.error('Ошибка при загрузке предпросмотра:', error);
+                    this.showNotification('Ошибка при загрузке предпросмотра данных', 'error');
+                }
+            },
+            
+            // Получение параметров формы
+            getFormParams(type) {
+                const params = {};
+                
+                switch (type) {
+                    case 'orders':
+                        params.format = document.getElementById('orders-format').value;
+                        params.status = document.getElementById('orders-status').value;
+                        params.client_name = document.getElementById('orders-client').value;
+                        params.date_from = document.getElementById('orders-date-from').value;
+                        params.date_to = document.getElementById('orders-date-to').value;
+                        break;
+                    case 'clients':
+                        params.format = document.getElementById('clients-format').value;
+                        params.source = document.getElementById('clients-source').value;
+                        params.search = document.getElementById('clients-search').value;
+                        break;
+                    case 'services':
+                        params.format = document.getElementById('services-format').value;
+                        params.category = document.getElementById('services-category').value;
+                        params.search = document.getElementById('services-search').value;
+                        break;
+                    case 'employees':
+                        params.format = document.getElementById('employees-format').value;
+                        params.employee_type = document.getElementById('employees-type').value;
+                        params.active = document.getElementById('employees-active').value;
+                        params.month = document.getElementById('employees-month').value;
+                        break;
+                    case 'finances':
+                        params.format = document.getElementById('finances-format').value;
+                        params.date_from = document.getElementById('finances-date-from').value;
+                        params.date_to = document.getElementById('finances-date-to').value;
+                        break;
+                }
+                
+                return params;
+            },
+            
+            // Обновление предпросмотра заказов
+            updateOrdersPreview(orders) {
+                const tbody = document.getElementById('orders-preview');
+                tbody.innerHTML = '';
+                
+                if (orders.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="5" class="py-2 px-3 text-center text-gray-500">Нет данных для отображения</td>
+                    `;
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                orders.forEach(order => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2 px-3">${order.id}</td>
+                        <td class="py-2 px-3">${order.client.name}</td>
+                        <td class="py-2 px-3">${formatter.date(order.order_date)}</td>
+                        <td class="py-2 px-3">${order.status}</td>
+                        <td class="py-2 px-3">${formatter.currency(order.total_price)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+            
+            // Обновление предпросмотра клиентов
+            updateClientsPreview(clients) {
+                const tbody = document.getElementById('clients-preview');
+                tbody.innerHTML = '';
+                
+                if (clients.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="5" class="py-2 px-3 text-center text-gray-500">Нет данных для отображения</td>
+                    `;
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                clients.forEach(client => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2 px-3">${client.id}</td>
+                        <td class="py-2 px-3">${client.name}</td>
+                        <td class="py-2 px-3">${client.phone}</td>
+                        <td class="py-2 px-3">${client.source}</td>
+                        <td class="py-2 px-3">${client.order_count}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+            
+            // Обновление предпросмотра услуг
+            updateServicesPreview(services) {
+                const tbody = document.getElementById('services-preview');
+                tbody.innerHTML = '';
+                
+                if (services.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="5" class="py-2 px-3 text-center text-gray-500">Нет данных для отображения</td>
+                    `;
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                services.forEach(service => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2 px-3">${service.id}</td>
+                        <td class="py-2 px-3">${service.name}</td>
+                        <td class="py-2 px-3">${service.category}</td>
+                        <td class="py-2 px-3">${formatter.currency(service.purchase_price || 0)}</td>
+                        <td class="py-2 px-3">${formatter.currency(service.selling_price)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+            
+            // Обновление предпросмотра сотрудников
+            updateEmployeesPreview(employees) {
+                const tbody = document.getElementById('employees-preview');
+                tbody.innerHTML = '';
+                
+                if (employees.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="6" class="py-2 px-3 text-center text-gray-500">Нет данных для отображения</td>
+                    `;
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                employees.forEach(employee => {
+                    const row = document.createElement('tr');
+                    
+                    // Приводим тип сотрудника к понятному названию с большой буквы
+                    const employeeType = employee.employee_type.charAt(0).toUpperCase() + employee.employee_type.slice(1);
+                    
+                    // Вычисляем зарплату в зависимости от параметров
+                    const salary = document.getElementById('employees-include-salary').checked
+                        ? formatter.currency(employee.salary || 0)
+                        : '—';
+                    
+                    row.innerHTML = `
+                        <td class="py-2 px-3">${employee.id}</td>
+                        <td class="py-2 px-3">${employee.name}</td>
+                        <td class="py-2 px-3">${employee.phone}</td>
+                        <td class="py-2 px-3">${employeeType}</td>
+                        <td class="py-2 px-3">${salary}</td>
+                        <td class="py-2 px-3">${employee.active ? 'Активен' : 'Неактивен'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+            
+            // Обновление предпросмотра финансов
+            updateFinancesPreview(transactions) {
+                const tbody = document.getElementById('finances-preview');
+                tbody.innerHTML = '';
+                
+                if (transactions.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="5" class="py-2 px-3 text-center text-gray-500">Нет данных для отображения</td>
+                    `;
+                    tbody.appendChild(row);
+                    return;
+                }
+                
+                transactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2 px-3">${transaction.id}</td>
+                        <td class="py-2 px-3">${formatter.date(transaction.transaction_date)}</td>
+                        <td class="py-2 px-3">${transaction.transaction_type}</td>
+                        <td class="py-2 px-3">${transaction.source_type}</td>
+                        <td class="py-2 px-3">${formatter.currency(transaction.amount)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            },
+            
+            // Экспорт данных
+            exportData(type) {
+                // Получаем параметры формы
+                const params = this.getFormParams(type);
+                
+                // Формируем URL для экспорта
+                const endpoint = `export/${type}`;
+                const url = new URL(`${api.baseUrl}/${endpoint}`);
+                
+                // Добавляем параметры к URL
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+                
+                // Дополнительные параметры для конкретных типов
+                if (type === 'employees' && document.getElementById('employees-include-salary').checked) {
+                    url.searchParams.append('include_salary', '1');
+                }
+                
+                if (type === 'finances') {
+                    if (document.getElementById('finances-include-summary').checked) {
+                        url.searchParams.append('include_summary', '1');
+                    }
+                    if (document.getElementById('finances-include-transactions').checked) {
+                        url.searchParams.append('include_transactions', '1');
+                    }
+                }
+                
+                // Открываем URL в новой вкладке для скачивания файла
+                window.open(url.toString(), '_blank');
+                
+                // Показываем уведомление
+                this.showNotification(`Экспорт данных "${this.getTypeName(type)}" запущен`, 'success');
+            },
+            
+            // Получение названия типа данных для отображения
+            getTypeName(type) {
+                const typeNames = {
+                    'orders': 'Заказы',
+                    'clients': 'Клиенты',
+                    'services': 'Услуги',
+                    'employees': 'Сотрудники',
+                    'finances': 'Финансы'
+                };
+                
+                return typeNames[type] || type;
+            },
+            
+            // Отображение уведомления
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                const messageElement = document.getElementById('notification-message');
+                
+                messageElement.textContent = message;
+                
+                // Устанавливаем класс в зависимости от типа уведомления
+                if (type === 'success') {
+                    notification.className = 'notification notification-success notification-show';
+                } else if (type === 'error') {
+                    notification.className = 'notification notification-error notification-show';
+                } else {
+                    notification.className = 'notification notification-show';
+                }
+                
+                // Скрываем через 3 секунды
+                setTimeout(() => {
+                    notification.classList.remove('notification-show');
+                }, 3000);
+            }
+        };
+
+        // Форматтер для отображения данных
+        const formatter = {
+            // Форматирование валюты
+            currency(value) {
+                return new Intl.NumberFormat('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB',
+                    maximumFractionDigits: 0
+                }).format(value);
+            },
+            
+            // Форматирование даты
+            date(dateString) {
+                return new Date(dateString).toLocaleDateString('ru-RU');
+            },
+            
+            // Форматирование даты и времени
+            datetime(dateString) {
+                return new Date(dateString).toLocaleString('ru-RU');
+            }
+        };
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            exportPage.init();
+        });
+    </script>
+</body>
+</html>

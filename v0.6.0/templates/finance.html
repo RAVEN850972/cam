@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КондCRM - Финансы</title>
+    <!-- Подключаем Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Подключаем Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Подключаем наш файл со стилями -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Боковое меню -->
+        <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">КондCRM</h1>
+            </div>
+            
+            <nav class="mt-6 flex-1">
+                <a href="/" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Дашборд
+                </a>
+                <a href="/orders" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="orders">
+                    <i class="fas fa-shopping-bag mr-3"></i>
+                    Заказы
+                </a>
+                <a href="/clients" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="clients">
+                    <i class="fas fa-users mr-3"></i>
+                    Клиенты
+                </a>
+                <a href="/services" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="services">
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Услуги
+                </a>
+                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                    <i class="fas fa-user-check mr-3"></i>
+                    Сотрудники
+                </a>
+                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Зарплаты
+                </a>
+                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Финансы
+                </a>
+                <a href="/export" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="export">
+                    <i class="fas fa-download mr-3"></i>
+                    Экспорт данных
+                </a>
+                <a href="#" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="settings">
+                    <i class="fas fa-cog mr-3"></i>
+                    Настройки
+                </a>
+            </nav>
+            
+            <div class="mx-6 mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold">Обновите до PRO</h3>
+                <p class="text-sm text-gray-600 mt-2">Получите доступ к дополнительным функциям и аналитике</p>
+                <button class="mt-4 bg-blue-600 text-white w-full py-2 rounded font-medium hover:bg-blue-700 transition">
+                    Обновить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="flex-1 overflow-auto">
+            <!-- Верхняя панель -->
+            <header class="bg-white p-6 flex items-center justify-between border-b sticky top-0 z-10">
+                <h1 class="text-2xl font-bold">Финансовый учет</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Поиск транзакций..."
+                            class="pl-10 pr-4 py-2 border rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="search-input"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                        АК
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Фильтры и период -->
+            <div class="p-6 pb-0 flex justify-between items-center">
+                <div class="bg-white rounded-full shadow-sm inline-flex">
+                    <button class="px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 rounded-l-full period-btn" data-period="day">День</button>
+                    <button class="px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 period-btn" data-period="week">Неделя</button>
+                    <button class="px-4 py-2 text-sm font-medium bg-gray-700 text-white period-btn" data-period="month">Месяц</button>
+                    <button class="px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 rounded-r-full period-btn" data-period="year">Год</button>
+                </div>
+                
+                <div class="flex items-center space-x-2 bg-white rounded-full px-4 py-2 border">
+                    <i class="fas fa-calendar text-gray-500"></i>
+                    <span id="date-range">1 Май 2025 - 31 Май 2025</span>
+                </div>
+            </div>
+            
+            <!-- Текущий баланс компании -->
+            <div class="p-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold">Текущий баланс компании</h3>
+                            <p class="text-gray-500 text-sm">Последнее обновление: <span id="last-update-date">Загрузка...</span></p>
+                        </div>
+                        <div class="mt-4 md:mt-0">
+                            <button id="add-expense-btn" class="bg-red-100 hover:bg-red-200 text-red-700 font-medium px-4 py-2 rounded mr-2">
+                                <i class="fas fa-minus mr-1"></i> Расход
+                            </button>
+                            <button id="add-income-btn" class="bg-green-100 hover:bg-green-200 text-green-700 font-medium px-4 py-2 rounded">
+                                <i class="fas fa-plus mr-1"></i> Доход
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-6">
+                        <div class="flex-1 border rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-gray-500">Текущий баланс</h4>
+                                <span class="text-gray-500"><i class="fas fa-wallet"></i></span>
+                            </div>
+                            <p class="text-3xl font-bold mt-2" id="current-balance">Загрузка...</p>
+                            <div class="flex items-center mt-2 text-sm text-green-500">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span id="balance-change">Загрузка...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 border rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-gray-500">Доходы за период</h4>
+                                <span class="text-green-500"><i class="fas fa-arrow-up"></i></span>
+                            </div>
+                            <p class="text-3xl font-bold mt-2 text-green-600" id="period-income">Загрузка...</p>
+                            <div class="flex items-center mt-2 text-sm text-green-500">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span id="income-change">Загрузка...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 border rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-gray-500">Расходы за период</h4>
+                                <span class="text-red-500"><i class="fas fa-arrow-down"></i></span>
+                            </div>
+                            <p class="text-3xl font-bold mt-2 text-red-600" id="period-expenses">Загрузка...</p>
+                            <div class="flex items-center mt-2 text-sm text-red-500">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span id="expenses-change">Загрузка...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Графики и диаграммы -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+                <!-- График доходов и расходов -->
+                <div class="col-span-1 lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-bold text-lg">Доходы и расходы</h2>
+                        <div>
+                            <span id="chart-loading" class="hidden">
+                                <div class="loader"></div>
+                                <span>Загрузка...</span>
+                            </span>
+                            <button class="text-gray-500 hover:text-gray-700 ml-2">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="h-64 border-b pb-2 relative" id="finance-chart">
+                        <!-- График будет добавлен через JavaScript -->
+                        <div class="absolute bottom-0 left-0 w-full h-full flex items-end justify-between px-2" id="chart-bars">
+                            <!-- Бары будут добавлены через JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between mt-2 text-gray-500 text-sm" id="chart-labels">
+                        <!-- Метки будут добавлены через JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Структура расходов -->
+                <div class="col-span-1 bg-white rounded-lg p-6 shadow-sm">
+                    <h2 class="font-bold text-lg mb-6">Структура расходов</h2>
+                    
+                    <div class="relative h-52 w-52 mx-auto mb-4">
+                        <svg class="w-full h-full" viewBox="0 0 36 36" id="expenses-chart">
+                            <!-- Фоновый круг -->
+                            <circle cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#f3f4f6" stroke-width="3"></circle>
+                            
+                            <!-- Секторы диаграммы будут добавлены через JavaScript -->
+                        </svg>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <!-- Категории расходов будут обновлены через JavaScript -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                                <span class="text-sm">Загрузка...</span>
+                            </div>
+                            <span class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="inline-block w-3 h-3 rounded-full bg-blue-600 mr-2"></span>
+                                <span class="text-sm">Загрузка...</span>
+                            </div>
+                            <span class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="inline-block w-3 h-3 rounded-full bg-green-600 mr-2"></span>
+                                <span class="text-sm">Загрузка...</span>
+                            </div>
+                            <span class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="inline-block w-3 h-3 rounded-full bg-amber-500 mr-2"></span>
+                                <span class="text-sm">Загрузка...</span>
+                            </div>
+                            <span class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <span class="inline-block w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
+                                <span class="text-sm">Загрузка...</span>
+                            </div>
+                            <span class="text-sm font-medium">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Прогноз на будущие периоды -->
+            <div class="p-6">
+                <div class="bg-white rounded-lg shadow-sm p-6">
+                    <h2 class="font-bold text-lg mb-4">Прогноз денежных потоков на ближайшие 3 месяца</h2>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="py-3 px-4 text-left font-medium">Месяц</th>
+                                    <th class="py-3 px-4 text-left font-medium">Ожидаемые доходы</th>
+                                    <th class="py-3 px-4 text-left font-medium">Ожидаемые расходы</th>
+                                    <th class="py-3 px-4 text-left font-medium">Прогнозируемая прибыль</th>
+                                    <th class="py-3 px-4 text-left font-medium">Ожидаемый баланс</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <!-- Данные будут загружены через JavaScript -->
+                                <tr>
+                                    <td colspan="5" class="py-3 px-4 text-center text-gray-500">Загрузка данных...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- История транзакций -->
+            <div class="p-6">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="p-6 flex justify-between items-center border-b">
+                        <h2 class="font-bold text-lg">История транзакций</h2>
+                        <div class="flex space-x-2">
+                            <div>
+                                <select id="transaction-type-filter" class="border rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="all">Все типы</option>
+                                    <option value="income">Только доходы</option>
+                                    <option value="expense">Только расходы</option>
+                                </select>
+                            </div>
+                            <button class="p-2 text-gray-500 hover:bg-gray-100 rounded" id="refresh-transactions">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="p-2 text-gray-500 hover:bg-gray-100 rounded">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="transactions-loading" class="loading hidden">
+                        <div class="loader"></div>
+                        <span>Загрузка транзакций...</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto" id="transactions-table-container">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="text-left py-4 px-6 font-medium">Дата</th>
+                                    <th class="text-left py-4 px-6 font-medium">Описание</th>
+                                    <th class="text-left py-4 px-6 font-medium">Тип</th>
+                                    <th class="text-left py-4 px-6 font-medium">Категория</th>
+                                    <th class="text-left py-4 px-6 font-medium">Сумма</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="transactions-table-body">
+                                <!-- Данные будут загружены через JavaScript -->
+                                <tr>
+                                    <td colspan="5" class="py-4 px-6 text-center text-gray-500">Загрузка транзакций...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="p-4 border-t flex items-center justify-between">
+                        <div class="text-sm text-gray-600">
+                            Показано 0 из 0 транзакций
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 border rounded hover:bg-gray-100 text-gray-600">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="px-3 py-1 border rounded bg-blue-600 text-white">1</button>
+                            <button class="px-3 py-1 border rounded hover:bg-gray-100 text-gray-600 hidden">2</button>
+                            <button class="px-3 py-1 border rounded hover:bg-gray-100 text-gray-600 hidden">3</button>
+                            <button class="px-3 py-1 border rounded hover:bg-gray-100 text-gray-600 hidden">...</button>
+                            <button class="px-3 py-1 border rounded hover:bg-gray-100 text-gray-600 hidden">25</button>
+                            <button class="px-3 py-1 border rounded hover:bg-gray-100 text-gray-600">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно добавления расхода -->
+    <div id="add-expense-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md">
+            <div class="p-6 border-b">
+                <h2 class="text-xl font-bold">Добавить расход</h2>
+            </div>
+            
+            <div class="p-6">
+                <form id="expense-form">
+                    <div class="mb-4">
+                        <label for="expense-category" class="block text-sm font-medium text-gray-700 mb-2">Категория расхода</label>
+                        <select id="expense-category" class="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="Закупка кондиционеров">Закупка кондиционеров</option>
+                            <option value="Зарплаты">Зарплаты</option>
+                            <option value="Расходные материалы">Расходные материалы</option>
+                            <option value="Транспорт">Транспорт</option>
+                            <option value="Аренда">Аренда</option>
+                            <option value="Маркетинг">Маркетинг</option>
+                            <option value="Прочие расходы">Прочие расходы</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="expense-amount" class="block text-sm font-medium text-gray-700 mb-2">Сумма</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₽</span>
+                            <input 
+                                type="number" 
+                                id="expense-amount" 
+                                class="pl-8 p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                                placeholder="0.00"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="expense-date" class="block text-sm font-medium text-gray-700 mb-2">Дата расхода</label>
+                        <input 
+                            type="date" 
+                            id="expense-date" 
+                            class="p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                            required
+                        >
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="expense-description" class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                        <textarea 
+                            id="expense-description" 
+                            class="p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                            rows="3"
+                            placeholder="Укажите детали расхода"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="expense-type" class="block text-sm font-medium text-gray-700 mb-2">Тип расхода</label>
+                        <select id="expense-type" class="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="operational">Операционный</option>
+                            <option value="investment">Инвестиционный</option>
+                            <option value="tax">Налоговый</option>
+                            <option value="other">Прочее</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+                <button id="cancel-expense-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2 rounded">
+                    Отмена
+                </button>
+                <button id="confirm-expense-btn" class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded">
+                    Добавить расход
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно добавления дохода -->
+    <div id="add-income-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg w-full max-w-md">
+            <div class="p-6 border-b">
+                <h2 class="text-xl font-bold">Добавить доход</h2>
+            </div>
+            
+            <div class="p-6">
+                <form id="income-form">
+                    <div class="mb-4">
+                        <label for="income-source" class="block text-sm font-medium text-gray-700 mb-2">Источник дохода</label>
+                        <select id="income-source" class="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="order">Заказ</option>
+                            <option value="investment">Инвестиции</option>
+                            <option value="refund">Возврат средств</option>
+                            <option value="other">Прочее</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="income-amount" class="block text-sm font-medium text-gray-700 mb-2">Сумма</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">₽</span>
+                            <input 
+                                type="number" 
+                                id="income-amount" 
+                                class="pl-8 p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                                placeholder="0.00"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="income-date" class="block text-sm font-medium text-gray-700 mb-2">Дата дохода</label>
+                        <input 
+                            type="date" 
+                            id="income-date" 
+                            class="p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                            required
+                        >
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="income-description" class="block text-sm font-medium text-gray-700 mb-2">Описание</label>
+                        <textarea 
+                            id="income-description" 
+                            class="p-3 w-full border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" 
+                            rows="3"
+                            placeholder="Укажите детали дохода"
+                        ></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+                <button id="cancel-income-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium px-4 py-2 rounded">
+                    Отмена
+                </button>
+                <button id="confirm-income-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded">
+                    Добавить доход
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script>
+        // API клиент для работы с реальным API
+        const api = {
+            // Корректно задаем полный базовый URL с протоколом
+            baseUrl: 'http://localhost:8000/api',
+            
+            async get(endpoint, params = {}) {
+                try {
+                    // Формируем URL с параметрами
+                    const url = new URL(`${this.baseUrl}/${endpoint}`);
+                    Object.keys(params).forEach(key => {
+                        // Проверяем значения и добавляем только непустые
+                        if (params[key] !== '' && params[key] !== null && params[key] !== undefined) {
+                            url.searchParams.append(key, params[key]);
+                        }
+                    });
+                    
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (GET ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            async post(endpoint, data) {
+                try {
+                    // Используем полный URL с протоколом
+                    const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data),
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error: ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                } catch (error) {
+                    console.error(`API Error (POST ${endpoint}):`, error);
+                    throw error;
+                }
+            },
+            
+            // Получение финансовой сводки
+            async getFinanceSummary(dateFrom, dateTo) {
+                return this.get('finance/summary', { date_from: dateFrom, date_to: dateTo });
+            },
+            
+            // Получение прогноза денежных потоков
+            async getCashFlowForecast(monthsAhead = 3) {
+                return this.get('finance/forecast', { months_ahead: monthsAhead });
+            },
+            
+            // Получение истории транзакций
+            async getTransactions(params = {}) {
+                return this.get('finance/transactions', params);
+            },
+            
+            // Получение текущего баланса
+            async getBalance() {
+                return this.get('finance/balance');
+            },
+            
+            // Добавление расхода
+            async addExpense(expenseData) {
+                return this.post('finance/expenses', expenseData);
+            }
+        };
+
+        // Форматирование данных
+        const formatter = {
+            // Форматирование валюты
+            currency(value) {
+                return new Intl.NumberFormat('ru-RU', {
+                    style: 'currency',
+                    currency: 'RUB',
+                    maximumFractionDigits: 0
+                }).format(value);
+            },
+            
+            // Форматирование даты
+            date(dateString) {
+                return new Date(dateString).toLocaleDateString('ru-RU');
+            },
+            
+            // Форматирование даты и времени
+            datetime(dateString) {
+                return new Date(dateString).toLocaleString('ru-RU');
+            }
+        };
+
+        // Компонент страницы финансов
+        const financePage = {
+            // Текущий выбранный период
+            currentPeriod: 'month',
+            
+            // Инициализация страницы
+            init() {
+                this.setupEventListeners();
+                this.loadFinanceData();
+            },
+            
+            // Настройка обработчиков событий
+            setupEventListeners() {
+                // Обработчики переключения периода
+                document.querySelectorAll('.period-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        // Находим текущую активную кнопку и снимаем активное состояние
+                        const activeBtn = document.querySelector('.period-btn.bg-gray-700');
+                        if (activeBtn) {
+                            activeBtn.classList.remove('bg-gray-700', 'text-white');
+                            activeBtn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+                        }
+                        
+                        // Делаем текущую кнопку активной
+                        btn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+                        btn.classList.add('bg-gray-700', 'text-white');
+                        
+                        this.currentPeriod = btn.dataset.period;
+                        this.loadFinanceData();
+                    });
+                });
+                
+                // Обновить транзакции
+                const refreshBtn = document.getElementById('refresh-transactions');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        this.loadTransactions();
+                    });
+                }
+                
+                // Фильтр типа транзакции
+                const typeFilter = document.getElementById('transaction-type-filter');
+                if (typeFilter) {
+                    typeFilter.addEventListener('change', (e) => {
+                        this.loadTransactions(e.target.value);
+                    });
+                }
+                
+                // Добавление расхода
+                const addExpenseBtn = document.getElementById('add-expense-btn');
+                if (addExpenseBtn) {
+                    addExpenseBtn.addEventListener('click', () => {
+                        this.openExpenseModal();
+                    });
+                }
+                
+                // Закрытие модального окна расхода
+                const cancelExpenseBtn = document.getElementById('cancel-expense-btn');
+                if (cancelExpenseBtn) {
+                    cancelExpenseBtn.addEventListener('click', () => {
+                        this.closeExpenseModal();
+                    });
+                }
+                
+                // Подтверждение добавления расхода
+                const confirmExpenseBtn = document.getElementById('confirm-expense-btn');
+                if (confirmExpenseBtn) {
+                    confirmExpenseBtn.addEventListener('click', () => {
+                        this.addExpense();
+                    });
+                }
+                
+                // Обработка нажатия клавиши Enter в модальных окнах
+                const expenseForm = document.getElementById('expense-form');
+                if (expenseForm) {
+                    expenseForm.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            this.addExpense();
+                        }
+                    });
+                }
+                
+                // Обработка поиска
+                const searchInput = document.getElementById('search-input');
+                if (searchInput) {
+                    let timeout = null;
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => {
+                            this.loadTransactions('all', e.target.value);
+                        }, 500); // Задержка для ограничения частоты запросов
+                    });
+                }
+            },
+            
+            // Загрузка финансовых данных
+            async loadFinanceData() {
+                try {
+                    const { dateFrom, dateTo, displayText } = this.getDateRange(this.currentPeriod);
+                    const dateRangeElement = document.getElementById('date-range');
+                    if (dateRangeElement) {
+                        dateRangeElement.textContent = displayText;
+                    }
+                    
+                    // Показываем индикатор загрузки для графика
+                    const chartLoading = document.getElementById('chart-loading');
+                    if (chartLoading) {
+                        chartLoading.classList.remove('hidden');
+                    }
+                    
+                    // Загружаем финансовую сводку
+                    const summary = await api.getFinanceSummary(dateFrom, dateTo);
+                    
+                    // Обновляем показатели на странице
+                    this.updateFinancialSummary(summary);
+                    
+                    // Загружаем прогноз денежных потоков
+                    const forecast = await api.getCashFlowForecast(3);
+                    
+                    // Обновляем таблицу прогноза
+                    this.updateForecastTable(forecast);
+                    
+                    // Загружаем историю транзакций
+                    this.loadTransactions();
+                    
+                    // Загружаем текущий баланс
+                    const balance = await api.getBalance();
+                    
+                    // Обновляем информацию о балансе
+                    const balanceElement = document.getElementById('current-balance');
+                    const lastUpdateElement = document.getElementById('last-update-date');
+                    
+                    if (balanceElement) {
+                        balanceElement.textContent = formatter.currency(balance.balance);
+                    }
+                    
+                    if (lastUpdateElement) {
+                        lastUpdateElement.textContent = formatter.datetime(balance.updated_at);
+                    }
+                    
+                    // Обновляем график доходов и расходов
+                    this.updateFinanceChart(summary);
+                    
+                    // Обновляем диаграмму расходов, если есть данные о расходах по категориям
+                    if (summary.expenses_by_category) {
+                        this.updateExpensesChart(summary.expenses_by_category);
+                    }
+                    
+                    // Скрываем индикатор загрузки для графика
+                    if (chartLoading) {
+                        chartLoading.classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке финансовых данных:', error);
+                    this.showNotification('Ошибка при загрузке финансовых данных', 'error');
+                    
+                    // Скрываем индикатор загрузки для графика
+                    const chartLoading = document.getElementById('chart-loading');
+                    if (chartLoading) {
+                        chartLoading.classList.add('hidden');
+                    }
+                }
+            },
+            
+            // Получение начала и конца периода
+            getDateRange(period) {
+                const now = new Date();
+                let dateFrom, dateTo;
+                
+                switch(period) {
+                    case 'day':
+                        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        dateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                        break;
+                    case 'week':
+                        const day = now.getDay() || 7; // Преобразуем 0 (воскресенье) в 7
+                        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
+                        dateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day), 23, 59, 59);
+                        break;
+                    case 'month':
+                        dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+                        dateTo = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                        break;
+                    case 'year':
+                        dateFrom = new Date(now.getFullYear(), 0, 1);
+                        dateTo = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                        break;
+                    default:
+                        // По умолчанию - месяц
+                        dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+                        dateTo = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                        break;
+                }
+                
+                return {
+                    dateFrom: this.formatForAPI(dateFrom),
+                    dateTo: this.formatForAPI(dateTo),
+                    displayText: this.formatDateRangeForDisplay(dateFrom, dateTo)
+                };
+            },
+            
+            // Форматирование даты для API (YYYY-MM-DD)
+            formatForAPI(date) {
+                return date.toISOString().split('T')[0];
+            },
+            
+            // Форматирование диапазона дат для отображения
+            formatDateRangeForDisplay(dateFrom, dateTo) {
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                return `${dateFrom.toLocaleDateString('ru-RU', options)} - ${dateTo.toLocaleDateString('ru-RU', options)}`;
+            },
+            
+            // Обновление финансовой сводки
+            updateFinancialSummary(summary) {
+                const incomeElement = document.getElementById('period-income');
+                const expensesElement = document.getElementById('period-expenses');
+                
+                if (incomeElement) {
+                    incomeElement.textContent = formatter.currency(summary.total_revenue || 0);
+                }
+                
+                if (expensesElement) {
+                    expensesElement.textContent = formatter.currency(summary.total_expenses || 0);
+                }
+            },
+            
+            // Обновление таблицы прогноза
+            updateForecastTable(forecast) {
+                const forecastTable = document.querySelector('table:not(#transactions-table-container table)');
+                if (!forecastTable) return;
+                
+                const tbody = forecastTable.querySelector('tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                if (!forecast || !forecast.forecast || !Array.isArray(forecast.forecast)) {
+                    console.error('Неверный формат данных прогноза:', forecast);
+                    return;
+                }
+                
+                forecast.forecast.forEach(month => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    // Форматируем название месяца
+                    const monthNames = [
+                        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 
+                        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+                    ];
+                    
+                    try {
+                        const [year, monthNum] = month.month.split('-');
+                        const monthIndex = parseInt(monthNum) - 1;
+                        // Проверка на валидность индекса
+                        const monthName = monthNames[monthIndex] ? `${monthNames[monthIndex]} ${year}` : `${month.month}`;
+                        
+                        row.innerHTML = `
+                            <td class="py-3 px-4">${monthName}</td>
+                            <td class="py-3 px-4 text-green-600 font-medium">${formatter.currency(month.forecasted_revenue || 0)}</td>
+                            <td class="py-3 px-4 text-red-600 font-medium">${formatter.currency(month.forecasted_expenses || 0)}</td>
+                            <td class="py-3 px-4 font-medium">${formatter.currency(month.forecasted_profit || 0)}</td>
+                            <td class="py-3 px-4 font-medium">${formatter.currency(month.forecasted_balance || 0)}</td>
+                        `;
+                        
+                        tbody.appendChild(row);
+                    } catch (error) {
+                        console.error('Ошибка при обработке месяца:', month, error);
+                    }
+                });
+            },
+            
+            // Загрузка истории транзакций
+            async loadTransactions(transactionType = 'all', searchQuery = '') {
+                try {
+                    // Показываем индикатор загрузки
+                    const loadingElement = document.getElementById('transactions-loading');
+                    const tableContainer = document.getElementById('transactions-table-container');
+                    
+                    if (loadingElement) loadingElement.classList.remove('hidden');
+                    if (tableContainer) tableContainer.classList.add('hidden');
+                    
+                    // Получаем параметры текущего периода
+                    const { dateFrom, dateTo } = this.getDateRange(this.currentPeriod);
+                    
+                    // Формируем параметры запроса
+                    const params = {
+                        date_from: dateFrom,
+                        date_to: dateTo,
+                        page: 1,
+                        limit: 5
+                    };
+                    
+                    // Добавляем тип транзакции, если выбран конкретный тип
+                    if (transactionType !== 'all') {
+                        if (transactionType === 'income') {
+                            params.transaction_type = 'доход';
+                        } else if (transactionType === 'expense') {
+                            params.transaction_type = 'расход';
+                        }
+                    }
+                    
+                    // Добавляем поисковый запрос, если он есть
+                    if (searchQuery && searchQuery.trim() !== '') {
+                        params.search = searchQuery.trim();
+                    }
+                    
+                    // Загружаем данные
+                    const transactionsData = await api.getTransactions(params);
+                    const transactions = transactionsData.transactions || [];
+                    const totalCount = transactionsData.total_count || 0;
+                    
+                    // Обновляем таблицу
+                    this.updateTransactionsTable(transactions, totalCount);
+                    
+                    // Скрываем индикатор загрузки
+                    if (loadingElement) loadingElement.classList.add('hidden');
+                    if (tableContainer) tableContainer.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Ошибка при загрузке истории транзакций:', error);
+                    this.showNotification('Ошибка при загрузке истории транзакций', 'error');
+                    
+                    // Скрываем индикатор загрузки и показываем пустую таблицу
+                    const loadingElement = document.getElementById('transactions-loading');
+                    const tableContainer = document.getElementById('transactions-table-container');
+                    
+                    if (loadingElement) loadingElement.classList.add('hidden');
+                    if (tableContainer) tableContainer.classList.remove('hidden');
+                    
+                    // Обновляем таблицу пустыми данными
+                    this.updateTransactionsTable([], 0);
+                }
+            },
+            
+            // Обновление таблицы транзакций
+            updateTransactionsTable(transactions, totalCount) {
+                const tbody = document.getElementById('transactions-table-body');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                if (transactions.length === 0) {
+                    // Если нет транзакций, показываем сообщение
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="5" class="py-4 px-6 text-center text-gray-500">
+                            Нет транзакций за выбранный период
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                } else {
+                    transactions.forEach(transaction => {
+                        const row = document.createElement('tr');
+                        row.className = 'hover:bg-gray-50';
+                        
+                        const isIncome = transaction.transaction_type === 'доход';
+                        const amountClass = isIncome ? 'text-green-600' : 'text-red-600';
+                        const amountPrefix = isIncome ? '+ ' : '- ';
+                        const statusClass = isIncome ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                        
+                        row.innerHTML = `
+                            <td class="py-4 px-6 text-sm">${formatter.date(transaction.transaction_date)}</td>
+                            <td class="py-4 px-6 text-sm">${transaction.description}</td>
+                            <td class="py-4 px-6">
+                                <span class="${statusClass} text-xs font-medium px-2.5 py-0.5 rounded">
+                                    ${isIncome ? 'Доход' : 'Расход'}
+                                </span>
+                            </td>
+                            <td class="py-4 px-6 text-sm">${transaction.source_type}</td>
+                            <td class="py-4 px-6 text-sm font-medium ${amountClass}">${amountPrefix}${formatter.currency(transaction.amount)}</td>
+                        `;
+                        
+                        tbody.appendChild(row);
+                    });
+                }
+                
+                // Обновляем информацию о количестве транзакций
+                const paginationInfo = document.querySelector('#transactions-table-container + div .text-gray-600');
+                if (paginationInfo) {
+                    paginationInfo.textContent = `Показано ${transactions.length} из ${totalCount} транзакций`;
+                }
+            },
+            
+            // Обновление графика доходов и расходов
+            updateFinanceChart(summary) {
+                // Получаем данные для графика из summary
+                const revenue_by_date = summary.revenue_by_date || {};
+                const expenses_by_date = summary.expenses_by_date || {};
+                
+                // Бары для графика
+                const chartBars = document.getElementById('chart-bars');
+                const chartLabels = document.getElementById('chart-labels');
+                
+                if (!chartBars || !chartLabels) return;
+                
+                // Очищаем предыдущие данные
+                chartBars.innerHTML = '';
+                chartLabels.innerHTML = '';
+                
+                // Если данных нет, показываем сообщение
+                if (Object.keys(revenue_by_date).length === 0 && Object.keys(expenses_by_date).length === 0) {
+                    chartBars.innerHTML = `
+                        <div class="absolute inset-0 flex items-center justify-center text-gray-500">
+                            Нет данных за выбранный период
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Объединяем даты из обоих объектов
+                const allDates = new Set([
+                    ...Object.keys(revenue_by_date),
+                    ...Object.keys(expenses_by_date)
+                ].sort());
+                
+                // Находим максимальное значение для масштабирования
+                const maxRevenue = Math.max(...Object.values(revenue_by_date).map(v => Number(v) || 0), 1);
+                const maxExpense = Math.max(...Object.values(expenses_by_date).map(v => Number(v) || 0), 1);
+                const maxValue = Math.max(maxRevenue, maxExpense, 1);
+                
+                // Создаем бары для каждой даты
+                let index = 0;
+                allDates.forEach(date => {
+                    const revenue = Number(revenue_by_date[date]) || 0;
+                    const expense = Number(expenses_by_date[date]) || 0;
+                    
+                    // Рассчитываем высоту баров в процентах
+                    const revenueHeight = (revenue / maxValue) * 100;
+                    const expenseHeight = (expense / maxValue) * 100;
+                    
+                    // Создаем группу для пары баров (доход и расход)
+                    const barGroup = document.createElement('div');
+                    barGroup.className = 'flex items-end space-x-1';
+                    
+                    // Бар дохода
+                    const revenueBar = document.createElement('div');
+                    revenueBar.className = 'bg-green-500 rounded-t w-3';
+                    revenueBar.style.height = `${revenueHeight}%`;
+                    revenueBar.title = `Доход за ${formatter.date(date)}: ${formatter.currency(revenue)}`;
+                    
+                    // Бар расхода
+                    const expenseBar = document.createElement('div');
+                    expenseBar.className = 'bg-red-500 rounded-t w-3';
+                    expenseBar.style.height = `${expenseHeight}%`;
+                    expenseBar.title = `Расход за ${formatter.date(date)}: ${formatter.currency(expense)}`;
+                    
+                    // Добавляем бары в группу
+                    barGroup.appendChild(revenueBar);
+                    barGroup.appendChild(expenseBar);
+                    
+                    // Добавляем группу в контейнер
+                    chartBars.appendChild(barGroup);
+                    
+                    // Добавляем метку даты
+                    // Показываем каждую 5-ю дату или первую/последнюю
+                    try {
+                        const dateObj = new Date(date);
+                        const day = dateObj.getDate();
+                        
+                        if (index % 5 === 0 || index === 0 || index === allDates.size - 1) {
+                            const label = document.createElement('div');
+                            label.textContent = day;
+                            chartLabels.appendChild(label);
+                        } else {
+                            const emptyLabel = document.createElement('div');
+                            emptyLabel.innerHTML = '&nbsp;';
+                            chartLabels.appendChild(emptyLabel);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при обработке даты:', date, error);
+                        const emptyLabel = document.createElement('div');
+                        emptyLabel.innerHTML = '&nbsp;';
+                        chartLabels.appendChild(emptyLabel);
+                    }
+                    
+                    index++;
+                });
+            },
+            
+            // Обновление диаграммы расходов
+            updateExpensesChart(expensesByCategory) {
+                // Проверяем, существуют ли данные о расходах по категориям
+                if (!expensesByCategory || Object.keys(expensesByCategory).length === 0) {
+                    return;
+                }
+                
+                // Для круговой диаграммы нужно рассчитать пропорции
+                // Получаем общую сумму расходов
+                const totalExpenses = Object.values(expensesByCategory).reduce((sum, value) => sum + Number(value || 0), 0);
+                
+                // Если общая сумма равна 0, не обновляем диаграмму
+                if (totalExpenses === 0) {
+                    return;
+                }
+                
+                // Обновляем круговую диаграмму
+                const chart = document.getElementById('expenses-chart');
+                if (!chart) return;
+                
+                // Очищаем диаграмму
+                // Оставляем только фоновый круг
+                while (chart.children.length > 1) {
+                    chart.removeChild(chart.lastChild);
+                }
+                
+                // Создаем секторы для каждой категории
+                let offset = 0;
+                const colors = ['#ef4444', '#0284c7', '#16a34a', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'];
+                let colorIndex = 0;
+                
+                // Обновляем подписи и проценты в легенде
+                const categoryItems = document.querySelectorAll('.space-y-2 .flex.items-center.justify-between');
+                let index = 0;
+                
+                for (const [category, amount] of Object.entries(expensesByCategory)) {
+                    // Рассчитываем процент
+                    const numAmount = Number(amount) || 0;
+                    const percent = (numAmount / totalExpenses) * 100;
+                    
+                    // Создаем сектор диаграммы
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', '18');
+                    circle.setAttribute('cy', '18');
+                    circle.setAttribute('r', '15.91549430918954');
+                    circle.setAttribute('fill', 'transparent');
+                    circle.setAttribute('stroke', colors[colorIndex % colors.length]);
+                    circle.setAttribute('stroke-width', '3');
+                    circle.setAttribute('stroke-dasharray', `${percent} 100`);
+                    circle.setAttribute('stroke-dashoffset', `${offset}`);
+                    
+                    chart.appendChild(circle);
+                    
+                    // Обновляем смещение для следующего сектора
+                    offset -= percent;
+                    colorIndex++;
+                    
+                    // Обновляем легенду, если элемент существует
+                    if (index < categoryItems.length) {
+                        const item = categoryItems[index];
+                        
+                        // Обновляем цвет индикатора
+                        const colorIndicator = item.querySelector('.inline-block.w-3.h-3.rounded-full');
+                        if (colorIndicator) {
+                            colorIndicator.style.backgroundColor = colors[(index) % colors.length];
+                        }
+                        
+                        // Обновляем название категории
+                        const nameElem = item.querySelector('.text-sm:not(.font-medium)');
+                        if (nameElem) {
+                            nameElem.textContent = category;
+                        }
+                        
+                        // Обновляем процент
+                        const percentElem = item.querySelector('.text-sm.font-medium');
+                        if (percentElem) {
+                            percentElem.textContent = `${Math.round(percent)}%`;
+                        }
+                        
+                        index++;
+                    }
+                }
+            },
+            
+            // Открытие модального окна добавления расхода
+            openExpenseModal() {
+                const modal = document.getElementById('add-expense-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                }
+                
+                // Устанавливаем текущую дату
+                const today = new Date().toISOString().split('T')[0];
+                const dateInput = document.getElementById('expense-date');
+                if (dateInput) {
+                    dateInput.value = today;
+                }
+            },
+            
+            // Закрытие модального окна добавления расхода
+            closeExpenseModal() {
+                const modal = document.getElementById('add-expense-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                }
+                
+                // Сбрасываем форму
+                const form = document.getElementById('expense-form');
+                if (form) {
+                    form.reset();
+                }
+            },
+            
+            // Добавление расхода
+            async addExpense() {
+                try {
+                    // Получаем данные из формы
+                    const category = document.getElementById('expense-category').value;
+                    const amount = parseFloat(document.getElementById('expense-amount').value);
+                    const expenseDate = document.getElementById('expense-date').value;
+                    const description = document.getElementById('expense-description').value;
+                    const expenseType = document.getElementById('expense-type').value;
+                    
+                    // Проверяем обязательные поля
+                    if (!category || isNaN(amount) || amount <= 0 || !expenseDate) {
+                        this.showNotification('Заполните все обязательные поля корректно', 'error');
+                        return;
+                    }
+                    
+                    // Отключаем кнопку на время запроса
+                    const confirmBtn = document.getElementById('confirm-expense-btn');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = true;
+                        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Обработка...';
+                    }
+                    
+                    // Формируем данные для отправки
+                    const expenseData = {
+                        category: category,
+                        amount: amount,
+                        expense_date: expenseDate,
+                        description: description,
+                        expense_type: expenseType
+                    };
+                    
+                    // Отправляем запрос
+                    const result = await api.addExpense(expenseData);
+                    
+                    if (result.success) {
+                        this.showNotification('Расход успешно добавлен', 'success');
+                        this.closeExpenseModal();
+                        
+                        // Перезагружаем данные
+                        this.loadFinanceData();
+                    } else {
+                        this.showNotification('Ошибка при добавлении расхода: ' + (result.message || 'Неизвестная ошибка'), 'error');
+                    }
+                    
+                    // Восстанавливаем кнопку
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = 'Добавить расход';
+                    }
+                } catch (error) {
+                    console.error('Ошибка при добавлении расхода:', error);
+                    this.showNotification('Ошибка при добавлении расхода: ' + (error.message || 'Неизвестная ошибка'), 'error');
+                    
+                    // Восстанавливаем кнопку
+                    const confirmBtn = document.getElementById('confirm-expense-btn');
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = 'Добавить расход';
+                    }
+                }
+            },
+            
+            // Отображение уведомления
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                const messageElement = document.getElementById('notification-message');
+                
+                if (!notification || !messageElement) return;
+                
+                messageElement.textContent = message;
+                
+                // Устанавливаем класс в зависимости от типа уведомления
+                if (type === 'success') {
+                    notification.className = 'notification notification-success notification-show';
+                } else if (type === 'error') {
+                    notification.className = 'notification notification-error notification-show';
+                } else {
+                    notification.className = 'notification notification-show';
+                }
+                
+                // Скрываем через 3 секунды
+                setTimeout(() => {
+                    notification.classList.remove('notification-show');
+                }, 3000);
+            }
+        };
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            financePage.init();
+        });
+    </script>
+</body>
+</html>

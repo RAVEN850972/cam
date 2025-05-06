@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КондCRM - Заказы</title>
+    <!-- Подключаем Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Подключаем Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Подключаем наш файл со стилями -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Боковое меню -->
+        <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">КондCRM</h1>
+            </div>
+            
+            <nav class="mt-6 flex-1">
+                <a href="/" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Дашборд
+                </a>
+                <a href="/orders" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="orders">
+                    <i class="fas fa-shopping-bag mr-3"></i>
+                    Заказы
+                </a>
+                <a href="/clients" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="clients">
+                    <i class="fas fa-users mr-3"></i>
+                    Клиенты
+                </a>
+                <a href="/services" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="services">
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Услуги
+                </a>
+                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                    <i class="fas fa-user-check mr-3"></i>
+                    Сотрудники
+                </a>
+                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Зарплаты
+                </a>
+                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Финансы
+                </a>
+                <a href="/export" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="export">
+                    <i class="fas fa-download mr-3"></i>
+                    Экспорт данных
+                </a>
+                <a href="#" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="settings">
+                    <i class="fas fa-cog mr-3"></i>
+                    Настройки
+                </a>
+            </nav>
+            
+            <div class="mx-6 mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold">Обновите до PRO</h3>
+                <p class="text-sm text-gray-600 mt-2">Получите доступ к дополнительным функциям и аналитике</p>
+                <button class="mt-4 bg-blue-600 text-white w-full py-2 rounded font-medium hover:bg-blue-700 transition">
+                    Обновить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="flex-1 overflow-auto">
+            <!-- Верхняя панель -->
+            <header class="bg-white p-6 flex items-center justify-between border-b sticky top-0 z-10">
+                <h1 class="text-2xl font-bold">Заказы</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Поиск заказов..."
+                            class="pl-10 pr-4 py-2 border rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="search-input"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                        АК
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Фильтры и кнопка добавления -->
+            <div class="p-6 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap gap-4">
+                    <!-- Фильтр по статусу -->
+                    <div class="relative">
+                        <select id="status-filter" class="border rounded-md py-2 pl-3 pr-10 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="">Все статусы</option>
+                            <option value="новый">Новый</option>
+                            <option value="в работе">В работе</option>
+                            <option value="завершен">Завершен</option>
+                            <option value="отменен">Отменен</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Фильтр по клиенту -->
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Имя клиента"
+                            class="border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="client-filter"
+                        />
+                    </div>
+                    
+                    <!-- Фильтр по дате (от) -->
+                    <div class="relative">
+                        <input
+                            type="date"
+                            class="border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="date-from"
+                        />
+                    </div>
+                    
+                    <!-- Фильтр по дате (до) -->
+                    <div class="relative">
+                        <input
+                            type="date"
+                            class="border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="date-to"
+                        />
+                    </div>
+                    
+                    <!-- Кнопка применения фильтров -->
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md flex items-center transition" id="apply-filters">
+                        <i class="fas fa-filter mr-2"></i>
+                        Применить
+                    </button>
+                    
+                    <!-- Кнопка сброса фильтров -->
+                    <button class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md flex items-center transition" id="reset-filters">
+                        <i class="fas fa-times mr-2"></i>
+                        Сбросить
+                    </button>
+                </div>
+                
+                <!-- Кнопка создания нового заказа -->
+                <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md flex items-center transition" id="new-order-btn">
+                    <i class="fas fa-plus mr-2"></i>
+                    Новый заказ
+                </button>
+            </div>
+            
+            <!-- Таблица заказов -->
+            <div class="px-6 pb-6">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <!-- Индикатор загрузки -->
+                    <div id="orders-loading" class="loading">
+                        <div class="loader"></div>
+                        <span>Загрузка заказов...</span>
+                    </div>
+                    
+                    <!-- Контейнер таблицы -->
+                    <div class="overflow-x-auto hidden" id="orders-table-container">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="text-left py-4 px-6 font-medium">ID</th>
+                                    <th class="text-left py-4 px-6 font-medium">Дата</th>
+                                    <th class="text-left py-4 px-6 font-medium">Клиент</th>
+                                    <th class="text-left py-4 px-6 font-medium">Услуги</th>
+                                    <th class="text-left py-4 px-6 font-medium">Сумма</th>
+                                    <th class="text-left py-4 px-6 font-medium">Статус</th>
+                                    <th class="text-left py-4 px-6 font-medium">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="orders-table-body">
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Пагинация -->
+                    <div class="flex items-center justify-between px-6 py-4 bg-white border-t">
+                        <div class="text-gray-500 text-sm">
+                            Показаны <span id="shown-orders">0</span> из <span id="total-orders">0</span> заказов
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            <button class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition" id="prev-page" disabled>
+                                <i class="fas fa-chevron-left mr-1"></i>
+                                Назад
+                            </button>
+                            
+                            <div class="text-gray-700" id="page-info">
+                                Страница <span id="current-page">1</span> из <span id="total-pages">1</span>
+                            </div>
+                            
+                            <button class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition" id="next-page" disabled>
+                                Вперед
+                                <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для создания/редактирования заказа -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="order-modal">
+        <div class="absolute inset-0 bg-black opacity-50" id="modal-overlay"></div>
+        
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-4xl z-10 relative">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-bold" id="modal-title">Новый заказ</h2>
+                <button class="text-gray-500 hover:text-gray-700" id="close-modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+                <form id="order-form">
+                    <!-- Клиент и менеджер -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Клиент*</label>
+                            <select id="client-select" class="border rounded-md py-2 px-3 w-full text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                                <option value="">Выберите клиента</option>
+                                <!-- Опции будут загружены через JavaScript -->
+                            </select>
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm mt-2" id="new-client-btn">
+                                <i class="fas fa-plus mr-1"></i>
+                                Новый клиент
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Менеджер*</label>
+                            <select id="manager-select" class="border rounded-md py-2 px-3 w-full text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                                <option value="">Выберите менеджера</option>
+                                <!-- Опции будут загружены через JavaScript -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Дата и статус -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Дата заказа*</label>
+                            <input type="datetime-local" id="order-date" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Статус*</label>
+                            <select id="order-status" class="border rounded-md py-2 px-3 w-full text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                                <option value="новый">Новый</option>
+                                <option value="в работе">В работе</option>
+                                <option value="завершен">Завершен</option>
+                                <option value="отменен">Отменен</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Базовая стоимость монтажа -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-medium mb-2">Стоимость монтажа (₽)*</label>
+                        <input type="number" id="mount-price" min="0" step="100" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                        <p class="text-sm text-gray-500 mt-1">Стандартная стоимость: 10000₽ для 7/9 БТЮ, 12000₽ для 12/18 БТЮ</p>
+                    </div>
+                    
+                    <!-- Монтажники -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-medium mb-2">Монтажники</label>
+                        <div id="installers-container">
+                            <!-- Шаблон для добавления монтажника -->
+                            <div class="flex items-center space-x-2 mb-2 installer-row">
+                                <select class="installer-select border rounded-md py-2 px-3 flex-1 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Выберите монтажника</option>
+                                    <!-- Опции будут загружены через JavaScript -->
+                                </select>
+                                <input type="number" class="installer-payment border rounded-md py-2 px-3 w-32 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Оплата" value="1500">
+                                <button type="button" class="remove-installer bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-md">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="text-blue-600 hover:text-blue-800 mt-2" id="add-installer">
+                            <i class="fas fa-plus mr-1"></i>
+                            Добавить монтажника
+                        </button>
+                    </div>
+                    
+                    <!-- Услуги и товары -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-medium mb-2">Услуги и товары</label>
+                        <div id="services-container">
+                            <!-- Шаблон для добавления услуги -->
+                            <div class="flex items-center space-x-2 mb-2 service-row">
+                                <select class="service-select border rounded-md py-2 px-3 flex-1 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Выберите услугу/товар</option>
+                                    <!-- Опции будут загружены через JavaScript -->
+                                </select>
+                                <input type="number" class="service-price border rounded-md py-2 px-3 w-32 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Цена">
+                                <select class="sold-by-select border rounded-md py-2 px-3 w-40 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="">Кто продал</option>
+                                    <!-- Опции будут загружены через JavaScript -->
+                                </select>
+                                <button type="button" class="remove-service bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-md">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="text-blue-600 hover:text-blue-800 mt-2" id="add-service">
+                            <i class="fas fa-plus mr-1"></i>
+                            Добавить услугу/товар
+                        </button>
+                    </div>
+                    
+                    <!-- Примечания -->
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-medium mb-2">Примечания</label>
+                        <textarea id="order-notes" rows="3" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                    </div>
+                    
+                    <!-- Итоговая сумма -->
+                    <div class="mb-6 flex justify-end">
+                        <div class="bg-gray-100 p-4 rounded-lg text-right">
+                            <div class="text-gray-600">Итого:</div>
+                            <div class="text-2xl font-bold" id="order-total">₽ 0</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition" id="cancel-order">
+                    Отмена
+                </button>
+                <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition" id="save-order">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для нового клиента -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="client-modal">
+        <div class="absolute inset-0 bg-black opacity-50" id="client-modal-overlay"></div>
+        
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md z-10 relative">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Новый клиент</h2>
+                <button class="text-gray-500 hover:text-gray-700" id="close-client-modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <form id="client-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-medium mb-2">Имя*</label>
+                        <input type="text" id="client-name" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-medium mb-2">Телефон*</label>
+                        <input type="tel" id="client-phone" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-medium mb-2">Источник*</label>
+                        <select id="client-source" class="border rounded-md py-2 px-3 w-full text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                            <option value="">Выберите источник</option>
+                            <option value="Авито">Авито</option>
+                            <option value="Яндекс">Яндекс</option>
+                            <option value="ВКонтакте">ВКонтакте</option>
+                            <option value="Рекомендация">Рекомендация</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition" id="cancel-client">
+                    Отмена
+                </button>
+                <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition" id="save-client">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="confirm-modal">
+        <div class="absolute inset-0 bg-black opacity-50" id="confirm-modal-overlay"></div>
+        
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md z-10 relative">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4">Подтверждение</h2>
+                <p id="confirm-message">Вы уверены, что хотите удалить этот заказ?</p>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition" id="cancel-confirm">
+                    Отмена
+                </button>
+                <button type="button" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition" id="confirm-action">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    
+    <!-- JavaScript для страницы заказов -->
+    <script>
+        // API client для работы с заказами
+        const api = {
+        baseUrl: 'http://localhost:8000/api',
+        
+        async get(endpoint, params = {}) {
+            try {
+            const url = new URL(`${this.baseUrl}/${endpoint}`);
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null) {
+                url.searchParams.append(key, params[key]);
+                }
+            });
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+            } catch (error) {
+            console.error(`API Error (GET ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        async post(endpoint, data) {
+            try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+                // Более тщательная обработка ошибки
+                let errorMessage = 'Ошибка при выполнении запроса';
+                
+                if (responseData.detail) {
+                // Проверяем формат detail - может быть строкой или массивом
+                if (typeof responseData.detail === 'string') {
+                    errorMessage = responseData.detail;
+                } else if (Array.isArray(responseData.detail)) {
+                    // Если это массив ошибок валидации, извлекаем сообщения
+                    const errorMessages = responseData.detail.map(error => error.msg || JSON.stringify(error));
+                    errorMessage = errorMessages.join('; ');
+                } else if (typeof responseData.detail === 'object') {
+                    // Если просто объект - преобразуем в строку
+                    errorMessage = JSON.stringify(responseData.detail);
+                }
+                } else if (responseData.error) {
+                errorMessage = responseData.error;
+                } else {
+                errorMessage = `HTTP error: ${response.status}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
+            
+            return responseData;
+            } catch (error) {
+            console.error(`API Error (POST ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        async put(endpoint, data) {
+            try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+                // Более тщательная обработка ошибки
+                let errorMessage = 'Ошибка при выполнении запроса';
+                
+                if (responseData.detail) {
+                // Проверяем формат detail - может быть строкой или массивом
+                if (typeof responseData.detail === 'string') {
+                    errorMessage = responseData.detail;
+                } else if (Array.isArray(responseData.detail)) {
+                    // Если это массив ошибок валидации, извлекаем сообщения
+                    const errorMessages = responseData.detail.map(error => error.msg || JSON.stringify(error));
+                    errorMessage = errorMessages.join('; ');
+                } else if (typeof responseData.detail === 'object') {
+                    // Если просто объект - преобразуем в строку
+                    errorMessage = JSON.stringify(responseData.detail);
+                }
+                } else if (responseData.error) {
+                errorMessage = responseData.error;
+                } else {
+                errorMessage = `HTTP error: ${response.status}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
+            
+            return responseData;
+            } catch (error) {
+            console.error(`API Error (PUT ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        async delete(endpoint) {
+            try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method: 'DELETE'
+            });
+            
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+                // Более тщательная обработка ошибки
+                let errorMessage = 'Ошибка при выполнении запроса';
+                
+                if (responseData.detail) {
+                // Проверяем формат detail - может быть строкой или массивом
+                if (typeof responseData.detail === 'string') {
+                    errorMessage = responseData.detail;
+                } else if (Array.isArray(responseData.detail)) {
+                    // Если это массив ошибок валидации, извлекаем сообщения
+                    const errorMessages = responseData.detail.map(error => error.msg || JSON.stringify(error));
+                    errorMessage = errorMessages.join('; ');
+                } else if (typeof responseData.detail === 'object') {
+                    // Если просто объект - преобразуем в строку
+                    errorMessage = JSON.stringify(responseData.detail);
+                }
+                } else if (responseData.error) {
+                errorMessage = responseData.error;
+                } else {
+                errorMessage = `HTTP error: ${response.status}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
+            
+            return responseData;
+            } catch (error) {
+            console.error(`API Error (DELETE ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        // Методы для работы с заказами
+        async getOrders(params = {}) {
+            return this.get('orders', params);
+        },
+        
+        async getOrder(id) {
+            return this.get(`orders/${id}`);
+        },
+        
+        async createOrder(data) {
+            return this.post('orders', data);
+        },
+        
+        async updateOrder(id, data) {
+            return this.put(`orders/${id}`, data);
+        },
+        
+        async deleteOrder(id) {
+            return this.delete(`orders/${id}`);
+        },
+        
+        // Методы для работы с клиентами
+        async getClients(params = {}) {
+            return this.get('clients', params);
+        },
+        
+        async createClient(data) {
+            return this.post('clients', data);
+        },
+        
+        // Методы для работы с сотрудниками
+        async getEmployees(params = {}) {
+            return this.get('employees', params);
+        },
+        
+        // Методы для работы с услугами
+        async getServices(params = {}) {
+            return this.get('services', params);
+        }
+        };
+
+        // Утилиты для форматирования и работы с данными
+        const utils = {
+        // Форматирование валюты
+        formatCurrency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB',
+            maximumFractionDigits: 0
+            }).format(value);
+        },
+        
+        // Форматирование даты
+        formatDate(dateString, includeTime = false) {
+            if (!dateString) return '-';
+            
+            const date = new Date(dateString);
+            
+            // Проверка на валидную дату
+            if (isNaN(date.getTime())) return '-';
+            
+            if (includeTime) {
+            return date.toLocaleDateString('ru-RU') + ' ' + 
+                    date.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+            }
+            
+            return date.toLocaleDateString('ru-RU');
+        },
+        
+        // Проверка телефонного номера
+        validatePhone(phone) {
+            const phoneRegex = /^\+?[0-9]{10,12}$/;
+            return phoneRegex.test(phone.replace(/\s/g, ''));
+        },
+        
+        // Стандартизация номера телефона
+        formatPhone(phone) {
+            return phone.replace(/\s/g, '');
+        },
+        
+        // Получение класса для статуса заказа
+        getStatusClass(status) {
+            switch (status) {
+            case 'новый': return 'status-pending';
+            case 'в работе': return 'status-processing';
+            case 'завершен': return 'status-completed';
+            case 'отменен': return 'status-canceled';
+            default: return '';
+            }
+        },
+        
+        // Текущая дата и время в формате ISO
+        getCurrentDateTime() {
+            return new Date().toISOString().slice(0, 16);
+        },
+        
+        // Получение URL параметра
+        getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        };
+
+        // Модуль для управления UI
+        const ui = {
+        // Инициализация UI компонентов
+        init() {
+            this.setupEventListeners();
+            this.loadInitialData();
+        },
+        
+        // Настройка обработчиков событий
+        setupEventListeners() {
+            // Фильтры и поиск
+            document.getElementById('apply-filters').addEventListener('click', () => {
+            ordersModule.currentPage = 1;
+            ordersModule.loadOrders();
+            });
+            
+            document.getElementById('reset-filters').addEventListener('click', () => {
+            document.getElementById('status-filter').value = '';
+            document.getElementById('client-filter').value = '';
+            document.getElementById('date-from').value = '';
+            document.getElementById('date-to').value = '';
+            ordersModule.currentPage = 1;
+            ordersModule.loadOrders();
+            });
+            
+            // Поиск в хедере
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('client-filter').value = e.target.value;
+                ordersModule.currentPage = 1;
+                ordersModule.loadOrders();
+            }
+            });
+            
+            // Пагинация
+            document.getElementById('prev-page').addEventListener('click', () => {
+            if (ordersModule.currentPage > 1) {
+                ordersModule.currentPage--;
+                ordersModule.loadOrders();
+            }
+            });
+            
+            document.getElementById('next-page').addEventListener('click', () => {
+            if (ordersModule.currentPage < ordersModule.totalPages) {
+                ordersModule.currentPage++;
+                ordersModule.loadOrders();
+            }
+            });
+            
+            // Кнопка создания нового заказа
+            document.getElementById('new-order-btn').addEventListener('click', () => {
+            this.openOrderModal();
+            });
+            
+            // Обработчики для модального окна заказа
+            document.getElementById('close-modal').addEventListener('click', this.closeOrderModal);
+            document.getElementById('modal-overlay').addEventListener('click', this.closeOrderModal);
+            document.getElementById('cancel-order').addEventListener('click', this.closeOrderModal);
+            document.getElementById('save-order').addEventListener('click', ordersModule.saveOrder);
+            
+            // Обработчики для монтажников и услуг
+            document.getElementById('add-installer').addEventListener('click', this.addInstaller);
+            document.getElementById('add-service').addEventListener('click', this.addService);
+            
+            // Обработчик изменения стоимости монтажа
+            document.getElementById('mount-price').addEventListener('input', this.calculateTotal);
+            
+            // Обработчики для модального окна клиента
+            document.getElementById('new-client-btn').addEventListener('click', this.openClientModal);
+            document.getElementById('close-client-modal').addEventListener('click', this.closeClientModal);
+            document.getElementById('client-modal-overlay').addEventListener('click', this.closeClientModal);
+            document.getElementById('cancel-client').addEventListener('click', this.closeClientModal);
+            document.getElementById('save-client').addEventListener('click', ordersModule.saveClient);
+            
+            // Обработчики для модального окна подтверждения
+            document.getElementById('cancel-confirm').addEventListener('click', this.closeConfirmModal);
+            document.getElementById('confirm-modal-overlay').addEventListener('click', this.closeConfirmModal);
+            document.getElementById('confirm-action').addEventListener('click', ordersModule.deleteOrder);
+        },
+        
+        // Загрузка начальных данных
+        loadInitialData() {
+            // Загружаем список заказов
+            ordersModule.loadOrders();
+            
+            // Загружаем справочники (клиенты, сотрудники, услуги)
+            ordersModule.loadReferences();
+            
+            // Проверяем, есть ли в URL параметр client_id
+            // Если есть, открываем модальное окно для создания заказа с выбранным клиентом
+            const clientId = utils.getUrlParam('client_id');
+            if (clientId) {
+            setTimeout(() => {
+                this.openOrderModal(null, clientId);
+            }, 1000); // Небольшая задержка для загрузки данных
+            }
+        },
+        
+        // Настройка обработчиков для строк с монтажниками
+        setupInstallerRowEvents(row) {
+            const removeButton = row.querySelector('.remove-installer');
+            if (removeButton) {
+            removeButton.addEventListener('click', () => {
+                this.removeInstaller(removeButton);
+            });
+            }
+        },
+        
+        // Настройка обработчиков для строк с услугами
+        setupServiceRowEvents(row) {
+            const removeButton = row.querySelector('.remove-service');
+            if (removeButton) {
+            removeButton.addEventListener('click', () => {
+                this.removeService(removeButton);
+            });
+            }
+            
+            const serviceSelect = row.querySelector('.service-select');
+            if (serviceSelect) {
+            serviceSelect.addEventListener('change', this.handleServiceSelection);
+            }
+            
+            const priceInput = row.querySelector('.service-price');
+            if (priceInput) {
+            priceInput.addEventListener('input', this.calculateTotal);
+            }
+        },
+        
+        // Обработчик выбора услуги (для автозаполнения цены)
+        handleServiceSelection(event) {
+            const serviceSelect = event.target;
+            if (!serviceSelect.classList.contains('service-select')) return;
+            
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            const priceInput = serviceSelect.closest('.service-row').querySelector('.service-price');
+            
+            if (selectedOption.value) {
+            priceInput.value = selectedOption.dataset.price;
+            
+            // Если это кондиционер, проверяем и обновляем стоимость монтажа
+            if (selectedOption.dataset.category === 'Кондиционер') {
+                const powerType = selectedOption.dataset.powerType;
+                const mountPriceInput = document.getElementById('mount-price');
+                
+                // Проверяем мощность кондиционера и устанавливаем соответствующую цену монтажа
+                if (powerType === '12 БТЮ' || powerType === '18 БТЮ') {
+                if (!mountPriceInput.value || mountPriceInput.value === '10000') {
+                    mountPriceInput.value = '12000';
+                }
+                } else {
+                // Для 7 и 9 БТЮ
+                if (!mountPriceInput.value) {
+                    mountPriceInput.value = '10000';
+                }
+                }
+            }
+            } else {
+            priceInput.value = '';
+            }
+            
+            // Пересчитываем итоговую сумму
+            ui.calculateTotal();
+        },
+        
+        // Расчет итоговой суммы заказа
+        calculateTotal() {
+            let total = 0;
+            
+            // Стоимость монтажа
+            const mountPrice = document.getElementById('mount-price').value || 0;
+            total += Number(mountPrice);
+            
+            // Стоимость дополнительных услуг
+            document.querySelectorAll('.service-row').forEach(row => {
+            const priceInput = row.querySelector('.service-price');
+            if (priceInput && priceInput.value) {
+                total += Number(priceInput.value);
+            }
+            });
+            
+            // Обновляем отображение итоговой суммы
+            document.getElementById('order-total').textContent = utils.formatCurrency(total);
+        },
+        
+        // Добавление строки с монтажником
+        addInstaller() {
+            const container = document.getElementById('installers-container');
+            
+            // Клонируем первую строку
+            const firstRow = container.querySelector('.installer-row');
+            const newRow = firstRow.cloneNode(true);
+            
+            // Сбрасываем значения в клоне
+            newRow.querySelector('.installer-select').value = '';
+            newRow.querySelector('.installer-payment').value = '1500';
+            
+            // Добавляем новую строку в контейнер
+            container.appendChild(newRow);
+            
+            // Обновляем списки монтажников
+            ordersModule.updateInstallerSelects();
+            
+            // Добавляем обработчики событий
+            ui.setupInstallerRowEvents(newRow);
+        },
+        
+        // Добавление строки с услугой
+        addService() {
+            const container = document.getElementById('services-container');
+            
+            // Клонируем первую строку
+            const firstRow = container.querySelector('.service-row');
+            const newRow = firstRow.cloneNode(true);
+            
+            // Сбрасываем значения в клоне
+            newRow.querySelector('.service-select').value = '';
+            newRow.querySelector('.service-price').value = '';
+            newRow.querySelector('.sold-by-select').value = '';
+            
+            // Добавляем новую строку в контейнер
+            container.appendChild(newRow);
+            
+            // Обновляем списки услуг
+            ordersModule.updateServiceSelects();
+            
+            // Добавляем обработчики событий
+            ui.setupServiceRowEvents(newRow);
+        },
+        
+        // Удаление строки с монтажником
+        removeInstaller(button) {
+            const container = document.getElementById('installers-container');
+            const rows = container.querySelectorAll('.installer-row');
+            
+            // Не удаляем последнюю строку
+            if (rows.length > 1) {
+            button.closest('.installer-row').remove();
+            } else {
+            // Очищаем значения в последней строке
+            const lastRow = rows[0];
+            lastRow.querySelector('.installer-select').value = '';
+            lastRow.querySelector('.installer-payment').value = '1500';
+            }
+        },
+        
+        // Удаление строки с услугой
+        removeService(button) {
+            const container = document.getElementById('services-container');
+            const rows = container.querySelectorAll('.service-row');
+            
+            // Не удаляем последнюю строку
+            if (rows.length > 1) {
+            button.closest('.service-row').remove();
+            
+            // Пересчитываем итоговую сумму
+            this.calculateTotal();
+            } else {
+            // Очищаем значения в последней строке
+            const lastRow = rows[0];
+            lastRow.querySelector('.service-select').value = '';
+            lastRow.querySelector('.service-price').value = '';
+            lastRow.querySelector('.sold-by-select').value = '';
+            
+            // Пересчитываем итоговую сумму
+            this.calculateTotal();
+            }
+        },
+        
+        // Открытие модального окна для создания/редактирования заказа
+        async openOrderModal(orderId = null, selectedClientId = null) {
+            try {
+            // Сбрасываем форму
+            document.getElementById('order-form').reset();
+            
+            // Очищаем контейнеры монтажников и услуг (оставляем по одной строке)
+            document.getElementById('installers-container').innerHTML = `
+                <div class="flex items-center space-x-2 mb-2 installer-row">
+                <select class="installer-select border rounded-md py-2 px-3 flex-1 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="">Выберите монтажника</option>
+                </select>
+                <input type="number" class="installer-payment border rounded-md py-2 px-3 w-32 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Оплата" value="1500">
+                <button type="button" class="remove-installer bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-md">
+                    <i class="fas fa-trash"></i>
+                </button>
+                </div>
+            `;
+            
+            document.getElementById('services-container').innerHTML = `
+                <div class="flex items-center space-x-2 mb-2 service-row">
+                <select class="service-select border rounded-md py-2 px-3 flex-1 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="">Выберите услугу/товар</option>
+                </select>
+                <input type="number" class="service-price border rounded-md py-2 px-3 w-32 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Цена">
+                <select class="sold-by-select border rounded-md py-2 px-3 w-40 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="">Кто продал</option>
+                </select>
+                <button type="button" class="remove-service bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-md">
+                    <i class="fas fa-trash"></i>
+                </button>
+                </div>
+            `;
+            
+            // Настраиваем обработчики для строк
+            this.setupInstallerRowEvents(document.querySelector('.installer-row'));
+            this.setupServiceRowEvents(document.querySelector('.service-row'));
+            
+            // Обновляем выпадающие списки
+            ordersModule.updateInstallerSelects();
+            ordersModule.updateServiceSelects();
+            
+            // Устанавливаем ID текущего заказа
+            ordersModule.currentOrderId = orderId;
+            
+            if (orderId) {
+                // Редактирование существующего заказа
+                document.getElementById('modal-title').textContent = `Редактирование заказа #${orderId}`;
+                
+                // Показываем индикатор загрузки
+                showNotification('Загрузка данных заказа...', 'info');
+                
+                // Загружаем данные заказа
+                const order = await api.getOrder(orderId);
+                
+                if (order) {
+                // Заполняем форму данными заказа
+                document.getElementById('client-select').value = order.client.id;
+                document.getElementById('manager-select').value = order.manager.id;
+                
+                // Форматируем дату и время для поля datetime-local
+                if (order.order_date) {
+                    const orderDate = new Date(order.order_date.replace(' ', 'T'));
+                    const formattedDate = orderDate.toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
+                    document.getElementById('order-date').value = formattedDate;
+                }
+                
+                document.getElementById('order-status').value = order.status;
+                document.getElementById('mount-price').value = order.mount_price;
+                document.getElementById('order-notes').value = order.notes || '';
+                
+                // Добавляем монтажников
+                if (order.employees && order.employees.length > 0) {
+                    // Очищаем контейнер
+                    document.getElementById('installers-container').innerHTML = '';
+                    
+                    // Добавляем всех монтажников
+                    order.employees.forEach(employee => {
+                    // Создаем новую строку
+                    const installerRow = document.createElement('div');
+                    installerRow.className = 'flex items-center space-x-2 mb-2 installer-row';
+                    installerRow.innerHTML = `
+                        <select class="installer-select border rounded-md py-2 px-3 flex-1 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="">Выберите монтажника</option>
+                        </select>
+                        <input type="number" class="installer-payment border rounded-md py-2 px-3 w-32 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Оплата" value="${employee.base_payment}">
+                        <button type="button" class="remove-installer bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-md">
+                        <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    
+                    // Добавляем строку в контейнер
+                    document.getElementById('installers-container').appendChild(installerRow);
+                    
+                    // Настраиваем обработчики событий
+                    this.setupInstallerRowEvents(installerRow);
+                    });
+                    
+                    // Обновляем списки монтажников
+                    ordersModule.updateInstallerSelects();
+                    
+                    // Устанавливаем выбранные значения
+                    const installerSelects = document.querySelectorAll('.installer-select');
+                    order.employees.forEach((employee, index) => {
+                    if (index < installerSelects.length) {
+                        installerSelects[index].value = employee.id;
+                    }
+                    });
+                }
+                
+                // Добавляем услуги
+                if (order.services && order.services.length > 0) {
+                    // Очищаем контейнер
+                    document.getElementById('services-container').innerHTML = '';
+                    
+                    // Добавляем все услуги
+                    order.services.forEach(service => {
+                    // Создаем новую строку
+                    const serviceRow = document.createElement('div');
+                    serviceRow.className = 'flex items-center space-x-2 mb-2 service-row';
+                    serviceRow.innerHTML = `
+                        <select class="service-select border rounded-md py-2 px-3 flex-1 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="">Выберите услугу/товар</option>
+                        </select>
+                        <input type="number" class="service-price border rounded-md py-2 px-3 w-32 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="Цена" value="${service.selling_price}">
+                        <select class="sold-by-select border rounded-md py-2 px-3 w-40 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <option value="">Кто продал</option>
+                        </select>
+                        <button type="button" class="remove-service bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-md">
+                        <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    
+                    // Добавляем строку в контейнер
+                    document.getElementById('services-container').appendChild(serviceRow);
+                    
+                    // Настраиваем обработчики событий
+                    this.setupServiceRowEvents(serviceRow);
+                    });
+                    
+                    // Обновляем списки услуг
+                    ordersModule.updateServiceSelects();
+                    
+                    // Устанавливаем выбранные значения
+                    const serviceSelects = document.querySelectorAll('.service-select');
+                    const soldBySelects = document.querySelectorAll('.sold-by-select');
+                    
+                    order.services.forEach((service, index) => {
+                    if (index < serviceSelects.length) {
+                        serviceSelects[index].value = service.id;
+                        
+                        if (service.sold_by) {
+                        soldBySelects[index].value = service.sold_by.id;
+                        }
+                    }
+                    });
+                }
+                
+                // Пересчитываем итоговую сумму
+                this.calculateTotal();
+                }
+            } else {
+                // Создание нового заказа
+                document.getElementById('modal-title').textContent = 'Новый заказ';
+                
+                // Устанавливаем текущую дату и время
+                document.getElementById('order-date').value = utils.getCurrentDateTime();
+                
+                // Стандартная стоимость монтажа
+                document.getElementById('mount-price').value = '10000';
+                
+                // Если передан ID клиента, устанавливаем его
+                if (selectedClientId) {
+                document.getElementById('client-select').value = selectedClientId;
+                }
+                
+                // Пересчитываем итоговую сумму
+                this.calculateTotal();
+            }
+            
+            // Открываем модальное окно
+            document.getElementById('order-modal').classList.remove('hidden');
+            
+            } catch (error) {
+            console.error('Ошибка при открытии модального окна:', error);
+            showNotification('Ошибка при загрузке данных заказа', 'error');
+            }
+        },
+        
+        // Закрытие модального окна заказа
+        closeOrderModal() {
+            document.getElementById('order-modal').classList.add('hidden');
+        },
+        
+        // Открытие модального окна для нового клиента
+        openClientModal() {
+            document.getElementById('client-form').reset();
+            document.getElementById('client-modal').classList.remove('hidden');
+        },
+        
+        // Закрытие модального окна клиента
+        closeClientModal() {
+            document.getElementById('client-modal').classList.add('hidden');
+        },
+        
+        // Открытие модального окна подтверждения удаления
+        openConfirmModal(orderId) {
+            // Сохраняем ID заказа
+            ordersModule.currentOrderId = orderId;
+            
+            // Устанавливаем сообщение
+            document.getElementById('confirm-message').textContent = `Вы уверены, что хотите удалить заказ #${orderId}?`;
+            
+            // Открываем модальное окно
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        },
+        
+        // Закрытие модального окна подтверждения
+        closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        },
+        
+        // Обновление таблицы заказов
+        updateOrdersTable(orders) {
+            const tableBody = document.getElementById('orders-table-body');
+            tableBody.innerHTML = '';
+            
+            if (orders.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="7" class="py-4 px-6 text-center text-gray-500">Заказы не найдены</td>';
+            tableBody.appendChild(row);
+            return;
+            }
+            
+            orders.forEach(order => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            row.dataset.id = order.id;
+            
+            // Получаем список услуг
+            const servicesList = order.services.map(s => s.name).join(', ');
+            
+            // Определяем класс для статуса
+            const statusClass = utils.getStatusClass(order.status);
+            
+            row.innerHTML = `
+                <td class="py-4 px-6">#${order.id}</td>
+                <td class="py-4 px-6">${utils.formatDate(order.order_date, true)}</td>
+                <td class="py-4 px-6">${order.client.name}</td>
+                <td class="py-4 px-6">${servicesList}</td>
+                <td class="py-4 px-6 font-medium">${utils.formatCurrency(order.total_price)}</td>
+                <td class="py-4 px-6">
+                <span class="status-pill ${statusClass}">${order.status}</span>
+                </td>
+                <td class="py-4 px-6">
+                <div class="flex space-x-2">
+                    <button class="text-blue-600 hover:text-blue-800 edit-order" data-id="${order.id}">
+                    <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-600 hover:text-red-800 delete-order" data-id="${order.id}">
+                    <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+            });
+            
+            // Добавляем обработчики для кнопок
+            this.setupActionButtons();
+        },
+        
+        // Настройка обработчиков для кнопок действий в таблице
+        setupActionButtons() {
+            // Кнопки редактирования
+            document.querySelectorAll('.edit-order').forEach(button => {
+            button.addEventListener('click', () => {
+                const orderId = button.dataset.id;
+                this.openOrderModal(orderId);
+            });
+            });
+            
+            // Кнопки удаления
+            document.querySelectorAll('.delete-order').forEach(button => {
+            button.addEventListener('click', () => {
+                const orderId = button.dataset.id;
+                this.openConfirmModal(orderId);
+            });
+            });
+        }
+        };
+
+        // Модуль для работы с заказами
+        const ordersModule = {
+        // Текущая страница и общее кол-во страниц
+        currentPage: 1,
+        totalPages: 1,
+        
+        // ID текущего заказа (при редактировании/удалении)
+        currentOrderId: null,
+        
+        // Кэш справочных данных
+        references: {
+            clients: [],
+            employees: {
+            managers: [],
+            installers: []
+            },
+            services: []
+        },
+        
+        // Загрузка списка заказов с учетом фильтров
+        async loadOrders() {
+            try {
+            // Показываем индикатор загрузки
+            document.getElementById('orders-loading').classList.remove('hidden');
+            document.getElementById('orders-table-container').classList.add('hidden');
+            
+            // Собираем параметры фильтрации
+            const params = {
+                page: this.currentPage,
+                limit: 10,
+                status: document.getElementById('status-filter').value,
+                client_name: document.getElementById('client-filter').value,
+                date_from: document.getElementById('date-from').value,
+                date_to: document.getElementById('date-to').value
+            };
+            
+            // Удаляем пустые параметры
+            Object.keys(params).forEach(key => {
+                if (!params[key]) delete params[key];
+            });
+            
+            // Запрос к API
+            const response = await api.getOrders(params);
+            
+            // Обновляем состояние пагинации
+            this.totalPages = response.total_pages || 1;
+            document.getElementById('current-page').textContent = this.currentPage;
+            document.getElementById('total-pages').textContent = this.totalPages;
+            document.getElementById('shown-orders').textContent = response.orders.length;
+            document.getElementById('total-orders').textContent = response.total_count;
+            
+            // Обновляем состояние кнопок пагинации
+            document.getElementById('prev-page').disabled = this.currentPage <= 1;
+            document.getElementById('next-page').disabled = this.currentPage >= this.totalPages;
+            
+            // Обновляем таблицу
+            ui.updateOrdersTable(response.orders);
+            
+            // Скрываем индикатор загрузки и показываем таблицу
+            document.getElementById('orders-loading').classList.add('hidden');
+            document.getElementById('orders-table-container').classList.remove('hidden');
+            
+            } catch (error) {
+            console.error('Ошибка при загрузке заказов:', error);
+            showNotification('Ошибка при загрузке заказов', 'error');
+            
+            // Скрываем индикатор загрузки в случае ошибки
+            document.getElementById('orders-loading').classList.add('hidden');
+            }
+        },
+        
+        // Загрузка справочных данных (клиенты, сотрудники, услуги)
+        async loadReferences() {
+            try {
+            // Загружаем список клиентов
+            const clients = await api.getClients({ limit: 100 });
+            this.references.clients = clients.clients || [];
+            
+            // Загружаем список сотрудников
+            const employees = await api.getEmployees({ limit: 100 });
+            
+            if (employees.employees) {
+                // Разделяем сотрудников на менеджеров и монтажников
+                this.references.employees.managers = employees.employees.filter(
+                emp => emp.employee_type === 'менеджер' && emp.active === 1
+                );
+                
+                this.references.employees.installers = employees.employees.filter(
+                emp => emp.employee_type === 'монтажник' && emp.active === 1
+                );
+            }
+            
+            // Загружаем список услуг
+            const services = await api.getServices({ limit: 100 });
+            this.references.services = services.services || [];
+            
+            // Обновляем выпадающие списки
+            this.updateClientSelect();
+            this.updateManagerSelect();
+            this.updateInstallerSelects();
+            this.updateServiceSelects();
+            
+            } catch (error) {
+            console.error('Ошибка при загрузке справочников:', error);
+            showNotification('Ошибка при загрузке справочников', 'error');
+            }
+        },
+        
+        // Обновление списка клиентов
+        updateClientSelect() {
+            const select = document.getElementById('client-select');
+            if (!select) return;
+            
+            // Сохраняем текущее выбранное значение
+            const selectedValue = select.value;
+            
+            // Удаляем все опции, кроме первой (заголовок)
+            while (select.options.length > 1) {
+            select.remove(1);
+            }
+            
+            // Добавляем новые опции
+            this.references.clients.forEach(client => {
+            const option = document.createElement('option');
+            option.value = client.id;
+            option.textContent = `${client.name} (${client.phone})`;
+            select.appendChild(option);
+            });
+            
+            // Восстанавливаем выбранное значение, если возможно
+            if (selectedValue && select.querySelector(`option[value="${selectedValue}"]`)) {
+            select.value = selectedValue;
+            }
+        },
+        
+        // Обновление списка менеджеров
+        updateManagerSelect() {
+            const select = document.getElementById('manager-select');
+            if (!select) return;
+            
+            // Сохраняем текущее выбранное значение
+            const selectedValue = select.value;
+            
+            // Удаляем все опции, кроме первой (заголовок)
+            while (select.options.length > 1) {
+            select.remove(1);
+            }
+            
+            // Добавляем новые опции
+            this.references.employees.managers.forEach(manager => {
+            const option = document.createElement('option');
+            option.value = manager.id;
+            option.textContent = manager.name;
+            select.appendChild(option);
+            });
+            
+            // Восстанавливаем выбранное значение, если возможно
+            if (selectedValue && select.querySelector(`option[value="${selectedValue}"]`)) {
+            select.value = selectedValue;
+            }
+        },
+        
+        // Обновление списков монтажников
+        updateInstallerSelects() {
+            const selects = document.querySelectorAll('.installer-select');
+            
+            selects.forEach(select => {
+            // Сохраняем текущее выбранное значение
+            const selectedValue = select.value;
+            
+            // Удаляем все опции, кроме первой (заголовок)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Добавляем новые опции
+            this.references.employees.installers.forEach(installer => {
+                const option = document.createElement('option');
+                option.value = installer.id;
+                option.textContent = installer.name;
+                select.appendChild(option);
+            });
+            
+            // Восстанавливаем выбранное значение, если возможно
+            if (selectedValue && select.querySelector(`option[value="${selectedValue}"]`)) {
+                select.value = selectedValue;
+            }
+            });
+        },
+        
+        // Обновление списков услуг
+        updateServiceSelects() {
+            const serviceSelects = document.querySelectorAll('.service-select');
+            const soldBySelects = document.querySelectorAll('.sold-by-select');
+            
+            // Обновляем списки услуг
+            serviceSelects.forEach(select => {
+            // Сохраняем текущее выбранное значение
+            const selectedValue = select.value;
+            
+            // Удаляем все опции, кроме первой (заголовок)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Группируем услуги по категориям
+            const servicesByCategory = {};
+            
+            this.references.services.forEach(service => {
+                if (!servicesByCategory[service.category]) {
+                servicesByCategory[service.category] = [];
+                }
+                servicesByCategory[service.category].push(service);
+            });
+            
+            // Добавляем новые опции сгруппированные по категориям
+            Object.keys(servicesByCategory).forEach(category => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+                
+                servicesByCategory[category].forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = service.name;
+                option.dataset.price = service.selling_price;
+                option.dataset.category = service.category;
+                option.dataset.powerType = service.power_type || '';
+                optgroup.appendChild(option);
+                });
+                
+                select.appendChild(optgroup);
+            });
+            
+            // Восстанавливаем выбранное значение, если возможно
+            if (selectedValue && select.querySelector(`option[value="${selectedValue}"]`)) {
+                select.value = selectedValue;
+            }
+            });
+            
+            // Обновляем списки "Кто продал"
+            soldBySelects.forEach(select => {
+            // Сохраняем текущее выбранное значение
+            const selectedValue = select.value;
+            
+            // Удаляем все опции, кроме первой (заголовок)
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Добавляем опции менеджеров
+            const managerOptgroup = document.createElement('optgroup');
+            managerOptgroup.label = 'Менеджеры';
+            
+            this.references.employees.managers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.id;
+                option.textContent = manager.name;
+                managerOptgroup.appendChild(option);
+            });
+            
+            select.appendChild(managerOptgroup);
+            
+            // Добавляем опции монтажников
+            const installerOptgroup = document.createElement('optgroup');
+            installerOptgroup.label = 'Монтажники';
+            
+            this.references.employees.installers.forEach(installer => {
+                const option = document.createElement('option');
+                option.value = installer.id;
+                option.textContent = installer.name;
+                installerOptgroup.appendChild(option);
+            });
+            
+            select.appendChild(installerOptgroup);
+            
+            // Восстанавливаем выбранное значение, если возможно
+            if (selectedValue && select.querySelector(`option[value="${selectedValue}"]`)) {
+                select.value = selectedValue;
+            }
+            });
+        },
+        
+        // Сохранение заказа (создание или обновление)
+        async saveOrder() {
+            try {
+            // Валидация данных
+            if (!validateOrderForm()) return;
+            
+            // Собираем данные формы
+            const orderData = getOrderFormData();
+            
+            // Проверка на наличие монтажников
+            if (orderData.employees.length === 0) {
+                showNotification('Необходимо добавить хотя бы одного монтажника', 'error');
+                return;
+            }
+            
+            // Вывод данных для отладки
+            console.log('Отправляемые данные заказа:', orderData);
+            
+            // Показываем уведомление о загрузке
+            showNotification('Сохранение заказа...', 'info');
+            
+            let response;
+            
+            try {
+                if (ordersModule.currentOrderId) {
+                // Обновление существующего заказа
+                response = await api.updateOrder(ordersModule.currentOrderId, orderData);
+                } else {
+                // Создание нового заказа
+                response = await api.createOrder(orderData);
+                }
+                
+                if (response.success) {
+                // Закрываем модальное окно
+                ui.closeOrderModal();
+                
+                // Перезагружаем список заказов
+                ordersModule.loadOrders();
+                
+                // Показываем уведомление об успехе
+                const actionType = ordersModule.currentOrderId ? 'обновлен' : 'создан';
+                showNotification(`Заказ успешно ${actionType}`, 'success');
+                
+                // Сбрасываем текущий ID заказа
+                ordersModule.currentOrderId = null;
+                } else {
+                // Показываем уведомление об ошибке
+                showNotification(response.error || response.detail || 'Ошибка при сохранении заказа', 'error');
+                }
+            } catch (apiError) {
+                // Показываем конкретную ошибку API
+                showNotification(`Ошибка при сохранении заказа: ${apiError.message}`, 'error');
+            }
+            } catch (error) {
+            console.error('Ошибка при сохранении заказа:', error);
+            showNotification(`Произошла ошибка: ${error.message}`, 'error');
+            }
+        },
+        
+        // Удаление заказа
+        async deleteOrder() {
+            try {
+            if (!ordersModule.currentOrderId) {
+                showNotification('ID заказа не указан', 'error');
+                return;
+            }
+            
+            // Показываем уведомление о загрузке
+            showNotification('Удаление заказа...', 'info');
+            
+            // Запрос к API
+            const response = await api.deleteOrder(ordersModule.currentOrderId);
+            
+            if (response.success) {
+                // Закрываем модальное окно подтверждения
+                ui.closeConfirmModal();
+                
+                // Перезагружаем список заказов
+                ordersModule.loadOrders();
+                
+                // Показываем уведомление об успехе
+                showNotification('Заказ успешно удален', 'success');
+                
+                // Сбрасываем текущий ID заказа
+                ordersModule.currentOrderId = null;
+            } else {
+                // Показываем уведомление об ошибке
+                showNotification(response.error || 'Ошибка при удалении заказа', 'error');
+            }
+            } catch (error) {
+            console.error('Ошибка при удалении заказа:', error);
+            showNotification('Ошибка при удалении заказа', 'error');
+            }
+        },
+        
+        // Сохранение нового клиента
+        async saveClient() {
+            try {
+            // Валидация данных
+            if (!validateClientForm()) return;
+            
+            // Собираем данные формы
+            const clientData = {
+                name: document.getElementById('client-name').value.trim(),
+                phone: document.getElementById('client-phone').value.trim(),
+                source: document.getElementById('client-source').value
+            };
+            
+            // Очищаем формат телефона от пробелов
+            clientData.phone = utils.formatPhone(clientData.phone);
+            
+            // Показываем уведомление о загрузке
+            showNotification('Создание клиента...', 'info');
+            
+            // Запрос к API
+            const response = await api.createClient(clientData);
+            
+            if (response.id) {
+                // Закрываем модальное окно
+                ui.closeClientModal();
+                
+                // Добавляем нового клиента в список и выбираем его
+                this.references.clients.push(response);
+                this.updateClientSelect();
+                document.getElementById('client-select').value = response.id;
+                
+                // Показываем уведомление об успехе
+                showNotification('Клиент успешно создан', 'success');
+            } else {
+                // Показываем уведомление об ошибке
+                showNotification(response.error || 'Ошибка при создании клиента', 'error');
+            }
+            } catch (error) {
+            console.error('Ошибка при создании клиента:', error);
+            showNotification('Ошибка при создании клиента', 'error');
+            }
+        }
+        };
+
+        // Функция для валидации формы заказа
+        function validateOrderForm() {
+        // Проверяем обязательные поля
+        const clientSelect = document.getElementById('client-select');
+        const managerSelect = document.getElementById('manager-select');
+        const orderDate = document.getElementById('order-date');
+        const mountPrice = document.getElementById('mount-price');
+        
+        if (!clientSelect.value) {
+            showNotification('Выберите клиента', 'error');
+            clientSelect.focus();
+            return false;
+        }
+        
+        if (!managerSelect.value) {
+            showNotification('Выберите менеджера', 'error');
+            managerSelect.focus();
+            return false;
+        }
+        
+        if (!orderDate.value) {
+            showNotification('Укажите дату заказа', 'error');
+            orderDate.focus();
+            return false;
+        }
+        
+        if (!mountPrice.value || isNaN(mountPrice.value) || Number(mountPrice.value) <= 0) {
+            showNotification('Укажите корректную стоимость монтажа', 'error');
+            mountPrice.focus();
+            return false;
+        }
+        
+        // Проверяем, что хотя бы одна услуга выбрана
+        const serviceSelects = document.querySelectorAll('.service-select');
+        const hasServices = Array.from(serviceSelects).some(select => select.value);
+        
+        if (!hasServices) {
+            showNotification('Добавьте хотя бы одну услугу или товар', 'error');
+            serviceSelects[0].focus();
+            return false;
+        }
+        
+        return true;
+        }
+
+        // Функция для валидации формы клиента
+        function validateClientForm() {
+        const clientName = document.getElementById('client-name');
+        const clientPhone = document.getElementById('client-phone');
+        const clientSource = document.getElementById('client-source');
+        
+        if (!clientName.value.trim()) {
+            showNotification('Укажите имя клиента', 'error');
+            clientName.focus();
+            return false;
+        }
+        
+        if (!clientPhone.value.trim()) {
+            showNotification('Укажите телефон клиента', 'error');
+            clientPhone.focus();
+            return false;
+        }
+        
+        if (!utils.validatePhone(clientPhone.value)) {
+            showNotification('Укажите корректный телефон клиента', 'error');
+            clientPhone.focus();
+            return false;
+        }
+        
+        if (!clientSource.value) {
+            showNotification('Выберите источник клиента', 'error');
+            clientSource.focus();
+            return false;
+        }
+        
+        return true;
+        }
+
+        // Функция для сбора данных формы заказа
+        function getOrderFormData() {
+        const formData = {
+            client_id: Number(document.getElementById('client-select').value),
+            manager_id: Number(document.getElementById('manager-select').value),
+            status: document.getElementById('order-status').value,
+            mount_price: Number(document.getElementById('mount-price').value),
+            notes: document.getElementById('order-notes').value,
+            employees: [],
+            services: []
+        };
+        
+        // Форматирование даты из YYYY-MM-DDTxx:xx в YYYY-MM-DD HH:MM
+        const dateInput = document.getElementById('order-date').value;
+        if (dateInput) {
+            // Заменяем 'T' на пробел для получения нужного формата
+            formData.order_date = dateInput.replace('T', ' ');
+        }
+        
+        // Добавляем монтажников
+        document.querySelectorAll('.installer-row').forEach(row => {
+            const employeeId = row.querySelector('.installer-select').value;
+            const payment = row.querySelector('.installer-payment').value;
+            
+            if (employeeId && payment) {
+            formData.employees.push({
+                employee_id: Number(employeeId),
+                employee_type: 'монтажник',
+                base_payment: Number(payment)
+            });
+            }
+        });
+        
+        // Добавляем услуги
+        document.querySelectorAll('.service-row').forEach(row => {
+            const serviceId = row.querySelector('.service-select').value;
+            const price = row.querySelector('.service-price').value;
+            const soldById = row.querySelector('.sold-by-select').value;
+            
+            if (serviceId && price) {
+            formData.services.push({
+                service_id: Number(serviceId),
+                selling_price: Number(price),
+                sold_by_id: soldById ? Number(soldById) : null
+            });
+            }
+        });
+        
+        return formData;
+        }
+
+        // Функция для отображения уведомлений
+        function showNotification(message, type = 'success') {
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        
+        notification.className = 'notification';
+        notification.classList.add(type === 'success' ? 'notification-success' : 'notification-error');
+        
+        notificationMessage.textContent = message;
+        
+        // Показываем уведомление
+        setTimeout(() => {
+            notification.classList.add('notification-show');
+        }, 100);
+        
+        // Скрываем через 3 секунды
+        setTimeout(() => {
+            notification.classList.remove('notification-show');
+        }, 3000);
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+        ui.init();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КондCRM - Дашборд</title>
+    <!-- Подключаем Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Подключаем Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Подключаем наш файл со стилями -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Боковое меню -->
+        <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">КондCRM</h1>
+            </div>
+            
+            <nav class="mt-6 flex-1">
+                <a href="/" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Дашборд
+                </a>
+                <a href="/orders" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="orders">
+                    <i class="fas fa-shopping-bag mr-3"></i>
+                    Заказы
+                </a>
+                <a href="/clients" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="clients">
+                    <i class="fas fa-users mr-3"></i>
+                    Клиенты
+                </a>
+                <a href="/services" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="services">
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Услуги
+                </a>
+                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                    <i class="fas fa-user-check mr-3"></i>
+                    Сотрудники
+                </a>
+                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Зарплаты
+                </a>
+                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Финансы
+                </a>
+                <a href="/export" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="export">
+                    <i class="fas fa-download mr-3"></i>
+                    Экспорт данных
+                </a>
+                <a href="#" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="settings">
+                    <i class="fas fa-cog mr-3"></i>
+                    Настройки
+                </a>
+            </nav>
+            
+            <div class="mx-6 mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold">Обновите до PRO</h3>
+                <p class="text-sm text-gray-600 mt-2">Получите доступ к дополнительным функциям и аналитике</p>
+                <button class="mt-4 bg-blue-600 text-white w-full py-2 rounded font-medium hover:bg-blue-700 transition">
+                    Обновить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="flex-1 overflow-auto">
+            <!-- Верхняя панель -->
+            <header class="bg-white p-6 flex items-center justify-between border-b sticky top-0 z-10">
+                <h1 class="text-2xl font-bold">Дашборд</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Поиск..."
+                            class="pl-10 pr-4 py-2 border rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="search-input"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                        АК
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Переключатель периода -->
+            <div class="p-6 pb-0 flex justify-between items-center">
+                <div class="bg-white rounded-full shadow-sm inline-flex">
+                    <button class="px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 rounded-l-full period-btn" data-period="day">День</button>
+                    <button class="px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 period-btn" data-period="week">Неделя</button>
+                    <button class="px-4 py-2 text-sm font-medium bg-gray-700 text-white period-btn" data-period="month">Месяц</button>
+                    <button class="px-4 py-2 text-sm font-medium bg-white text-gray-700 hover:bg-gray-100 rounded-r-full period-btn" data-period="year">Год</button>
+                </div>
+                
+                <div class="flex items-center space-x-2 bg-white rounded-full px-4 py-2 border">
+                    <i class="fas fa-calendar text-gray-500"></i>
+                    <span id="date-range">1 Май 2025 - 31 Май 2025</span>
+                </div>
+            </div>
+            
+            <!-- Индикатор загрузки для карточек статистики -->
+            <div id="stats-loading" class="loading">
+                <div class="loader"></div>
+                <span>Загрузка данных...</span>
+            </div>
+            
+            <!-- Карточки статистики -->
+            <div id="stats-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6 hidden">
+                <div class="stat-card stat-card-dark rounded-lg shadow-sm p-6">
+                    <h3 class="text-sm font-medium text-gray-300">Общая выручка</h3>
+                    <p class="text-2xl font-bold mt-2" id="total-revenue">₽ 0</p>
+                    <div class="flex items-center mt-2 text-sm" id="revenue-change">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>0% от прошлого месяца</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-sm font-medium text-gray-500">Активные заказы</h3>
+                    <p class="text-2xl font-bold mt-2" id="active-orders">0</p>
+                    <div class="flex items-center mt-2 text-sm" id="orders-change">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>0% от прошлого месяца</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-sm font-medium text-gray-500">Новые клиенты</h3>
+                    <p class="text-2xl font-bold mt-2" id="new-clients">0</p>
+                    <div class="flex items-center mt-2 text-sm" id="clients-change">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>0% от прошлого месяца</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-sm font-medium text-gray-500">Всего монтажей</h3>
+                    <p class="text-2xl font-bold mt-2" id="total-installations">0</p>
+                    <div class="flex items-center mt-2 text-sm" id="installations-change">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        <span>0% от прошлого месяца</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Графики и данные -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+                <!-- График выручки -->
+                <div class="col-span-1 lg:col-span-2 bg-white rounded-lg p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-bold text-lg">Общая выручка</h2>
+                        <div>
+                            <span id="chart-loading" class="hidden">
+                                <div class="loader"></div>
+                                <span>Загрузка...</span>
+                            </span>
+                            <button class="text-gray-500 hover:text-gray-700 ml-2">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="h-64 border-b pb-2 relative" id="revenue-chart">
+                        <!-- Имитация графика -->
+                        <div class="absolute bottom-0 left-0 w-full h-full flex items-end justify-between px-2" id="chart-bars">
+                            <!-- Бары будут добавлены через JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between mt-2 text-gray-500 text-sm" id="chart-labels">
+                        <!-- Метки будут добавлены через JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Календарь и конверсия -->
+                <div class="col-span-1 space-y-6">
+                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="font-bold">Май 2025</h2>
+                            <div class="flex space-x-2">
+                                <button class="p-1 rounded hover:bg-gray-100" id="prev-month">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button class="p-1 rounded hover:bg-gray-100" id="next-month">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-5 gap-2 text-center mt-2" id="calendar-grid">
+                            <div class="text-gray-400">Пн</div>
+                            <div class="text-gray-400">Вт</div>
+                            <div class="text-gray-400">Ср</div>
+                            <div class="text-gray-400">Чт</div>
+                            <div class="text-gray-400">Пт</div>
+                            <!-- Календарь будет заполнен через JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-6 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <h2 class="font-bold">Конверсия заказов</h2>
+                            <div id="conversion-change" class="text-green-500 flex items-center text-sm">
+                                <i class="fas fa-arrow-up mr-1"></i>
+                                <span>0% от прошлого месяца</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center items-center mt-4">
+                            <div class="relative h-32 w-32">
+                                <svg class="w-full h-full" viewBox="0 0 36 36" id="conversion-chart">
+                                    <path
+                                        d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#E5E7EB"
+                                        stroke-width="3"
+                                    />
+                                    <path
+                                        d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none"
+                                        stroke="#3B82F6"
+                                        stroke-width="3"
+                                        stroke-dasharray="0, 100"
+                                        id="conversion-circle"
+                                    />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-3xl font-bold" id="conversion-percent">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Таблица последних заказов -->
+            <div class="p-6">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="p-6 flex justify-between items-center border-b">
+                        <h2 class="font-bold text-lg">Последние заказы</h2>
+                        <div class="flex space-x-2">
+                            <button class="p-2 text-gray-500 hover:bg-gray-100 rounded" id="refresh-orders">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="p-2 text-gray-500 hover:bg-gray-100 rounded">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="orders-loading" class="loading">
+                        <div class="loader"></div>
+                        <span>Загрузка заказов...</span>
+                    </div>
+                    
+                    <div class="overflow-x-auto hidden" id="orders-table-container">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="text-left py-4 px-6 font-medium">Услуга</th>
+                                    <th class="text-left py-4 px-6 font-medium">Клиент</th>
+                                    <th class="text-left py-4 px-6 font-medium">ID заказа</th>
+                                    <th class="text-left py-4 px-6 font-medium">Сумма</th>
+                                    <th class="text-left py-4 px-6 font-medium">Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="orders-table-body">
+                                <!-- Таблица заказов будет заполнена через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="./js/orders.js"></script>
+    
+    <!-- JavaScript для страницы дашборда -->
+    <script>
+       // API client для работы с бэкендом
+        const api = {
+        baseUrl: 'http://localhost:8000/api',
+        
+        async get(endpoint, params = {}) {
+            try {
+            // Формируем URL с параметрами
+            const url = new URL(`${this.baseUrl}/${endpoint}`);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+            
+            const response = await fetch(url);
+            
+            // Обработка ошибок HTTP
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+            } catch (error) {
+            console.error(`API Error (GET ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        // Получение финансовой сводки за период
+        async getFinanceSummary(dateFrom, dateTo) {
+            return this.get('finance/summary', { date_from: dateFrom, date_to: dateTo });
+        },
+        
+        // Получение списка заказов
+        async getOrders(params = {}) {
+            return this.get('orders', { ...params, limit: 5 }); // Ограничиваем до 5 заказов для дашборда
+        },
+        
+        // Получение статистики по источникам клиентов
+        async getClientSourceStats() {
+            return this.get('clients/stats/by-source');
+        }
+        };
+
+        // Форматирование данных
+        const formatter = {
+        // Форматирование валюты
+        currency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB',
+            maximumFractionDigits: 0
+            }).format(value);
+        },
+        
+        // Форматирование даты
+        date(dateString) {
+            return new Date(dateString).toLocaleDateString('ru-RU');
+        },
+        
+        // Форматирование процентов
+        percent(value) {
+            return `${value.toFixed(1)}%`;
+        }
+        };
+
+        // Утилиты для работы с датами
+        const dateUtils = {
+        // Получение начала и конца периода
+        getDateRange(period) {
+            const now = new Date();
+            let dateFrom, dateTo;
+            
+            switch(period) {
+            case 'day':
+                dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                dateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                break;
+            case 'week':
+                const day = now.getDay() || 7; // Преобразуем 0 (воскресенье) в 7
+                dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
+                dateTo = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day), 23, 59, 59);
+                break;
+            case 'month':
+                dateFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+                dateTo = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+                break;
+            case 'year':
+                dateFrom = new Date(now.getFullYear(), 0, 1);
+                dateTo = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+                break;
+            }
+            
+            return {
+            dateFrom: this.formatForAPI(dateFrom),
+            dateTo: this.formatForAPI(dateTo),
+            displayText: this.formatDateRangeForDisplay(dateFrom, dateTo)
+            };
+        },
+        
+        // Форматирование даты для API
+        formatForAPI(date) {
+            return date.toISOString().split('T')[0];
+        },
+        
+        // Форматирование диапазона дат для отображения
+        formatDateRangeForDisplay(dateFrom, dateTo) {
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            return `${dateFrom.toLocaleDateString('ru-RU', options)} - ${dateTo.toLocaleDateString('ru-RU', options)}`;
+        }
+        };
+
+        // Компонент дашборда
+        const dashboard = {
+        // Текущий выбранный период
+        currentPeriod: 'month',
+        
+        // Инициализация дашборда
+        init() {
+            this.setupUIEventListeners();
+            this.loadDashboardData();
+            this.initCalendar();
+        },
+        
+        // Настройка обработчиков событий UI
+        setupUIEventListeners() {
+            // Обработчики переключения периода
+            document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.period-btn.bg-gray-700').classList.remove('bg-gray-700', 'text-white');
+                document.querySelector('.period-btn.bg-gray-700').classList.add('bg-white', 'text-gray-700');
+                
+                btn.classList.remove('bg-white', 'text-gray-700');
+                btn.classList.add('bg-gray-700', 'text-white');
+                
+                this.currentPeriod = btn.dataset.period;
+                this.loadDashboardData();
+            });
+            });
+            
+            // Обновить заказы
+            document.getElementById('refresh-orders').addEventListener('click', () => {
+            this.loadRecentOrders();
+            });
+        },
+        
+        // Загрузка данных для дашборда
+        async loadDashboardData() {
+            try {
+            this.showLoading('stats');
+            this.showLoading('chart');
+            
+            const { dateFrom, dateTo, displayText } = dateUtils.getDateRange(this.currentPeriod);
+            document.getElementById('date-range').textContent = displayText;
+            
+            // Загружаем финансовую сводку
+            const summary = await api.getFinanceSummary(dateFrom, dateTo);
+            
+            // Получаем данные о прибыли за предыдущий период для расчета изменений
+            const prevPeriod = this.getPreviousPeriod(dateFrom, dateTo);
+            const prevSummary = await api.getFinanceSummary(prevPeriod.dateFrom, prevPeriod.dateTo);
+            
+            // Обновляем виджеты на странице
+            this.updateStatsWidgets(summary, prevSummary);
+            this.updateRevenueChart(summary);
+            this.updateConversionRate(summary);
+            
+            // Загружаем заказы
+            this.loadRecentOrders();
+            
+            this.hideLoading('stats');
+            this.hideLoading('chart');
+            } catch (error) {
+            console.error('Ошибка при загрузке данных дашборда:', error);
+            this.showNotification('Ошибка при загрузке данных дашборда', 'error');
+            
+            this.hideLoading('stats');
+            this.hideLoading('chart');
+            }
+        },
+        
+        // Получение предыдущего периода для сравнения
+        getPreviousPeriod(dateFrom, dateTo) {
+            const from = new Date(dateFrom);
+            const to = new Date(dateTo);
+            const diff = to.getTime() - from.getTime(); // Разница в миллисекундах
+            
+            const prevFrom = new Date(from.getTime() - diff);
+            const prevTo = new Date(to.getTime() - diff);
+            
+            return {
+            dateFrom: dateUtils.formatForAPI(prevFrom),
+            dateTo: dateUtils.formatForAPI(prevTo)
+            };
+        },
+        
+        // Обновление виджетов статистики
+        updateStatsWidgets(summary, prevSummary) {
+            // Обновляем данные в карточках
+            document.getElementById('total-revenue').textContent = formatter.currency(summary.total_revenue);
+            
+            // В API отсутствуют счетчики активных заказов, новых клиентов и количества установок
+            // Предполагаем, что эти данные будут доступны в API в будущем или вычисляются на клиенте
+            // В данном примере используем упрощенный подход
+            
+            // Активные заказы - предполагаем что это заказы со статусом "в работе" и "новый"
+            api.getOrders({ status: 'в работе,новый' }).then(data => {
+            document.getElementById('active-orders').textContent = data.total_count;
+            
+            // Расчет изменения
+            const change = calculatePercentChange(data.total_count, prevSummary.active_orders || 0);
+            this.updateChangeIndicator('orders-change', change);
+            });
+            
+            // Расчет процентного изменения для выручки
+            const revenueChange = calculatePercentChange(summary.total_revenue, prevSummary.total_revenue);
+            this.updateChangeIndicator('revenue-change', revenueChange);
+            
+            // Обновление остальных индикаторов будет аналогичным через соответствующие API-вызовы
+        },
+        
+        // Обновление индикатора изменения
+        updateChangeIndicator(elementId, changePercent) {
+            const element = document.getElementById(elementId);
+            const icon = element.querySelector('i');
+            const span = element.querySelector('span');
+            
+            // Обновляем иконку и класс в зависимости от знака изменения
+            if (changePercent > 0) {
+            icon.className = 'fas fa-arrow-up mr-1';
+            element.className = 'flex items-center mt-2 text-sm text-green-500';
+            } else if (changePercent < 0) {
+            icon.className = 'fas fa-arrow-down mr-1';
+            element.className = 'flex items-center mt-2 text-sm text-red-500';
+            } else {
+            icon.className = 'fas fa-minus mr-1';
+            element.className = 'flex items-center mt-2 text-sm text-gray-500';
+            }
+            
+            // Обновляем текст
+            span.textContent = `${Math.abs(changePercent).toFixed(1)}% от прошлого ${this.getPeriodName()}`;
+        },
+        
+        // Получение названия периода для отображения
+        getPeriodName() {
+            const names = {
+            day: 'дня',
+            week: 'недели',
+            month: 'месяца',
+            year: 'года'
+            };
+            return names[this.currentPeriod];
+        },
+        
+        // Обновление графика выручки
+        updateRevenueChart(summary) {
+            // Предполагаем, что в summary есть данные для графика в формате: revenue_by_date
+            const chartData = summary.revenue_by_date || {};
+            const chartBars = document.getElementById('chart-bars');
+            const chartLabels = document.getElementById('chart-labels');
+            
+            // Очищаем предыдущие данные
+            chartBars.innerHTML = '';
+            chartLabels.innerHTML = '';
+            
+            // Получаем даты и значения
+            const dates = Object.keys(chartData).sort();
+            const values = dates.map(date => chartData[date]);
+            
+            // Находим максимальное значение для нормализации высоты баров
+            const maxValue = Math.max(...values, 1); // Избегаем деления на ноль
+            
+            // Добавляем бары и метки
+            dates.forEach((date, index) => {
+            const value = values[index];
+            const heightPercent = (value / maxValue) * 100;
+            
+            // Создаем бар
+            const bar = document.createElement('div');
+            bar.className = 'bg-blue-600 rounded-t w-6';
+            bar.style.height = `${heightPercent}%`;
+            bar.title = `${formatter.date(date)}: ${formatter.currency(value)}`;
+            chartBars.appendChild(bar);
+            
+            // Создаем метку
+            const label = document.createElement('div');
+            label.textContent = formatter.date(date).split('.')[0]; // Только день
+            chartLabels.appendChild(label);
+            });
+        },
+        
+        // Обновление показателя конверсии
+        updateConversionRate(summary) {
+            // Предполагаем, что в summary есть поле conversion_rate
+            const conversionRate = summary.conversion_rate || 0;
+            const prevRate = summary.prev_conversion_rate || 0;
+            const change = calculatePercentChange(conversionRate, prevRate);
+            
+            // Обновляем круговой график
+            const circle = document.getElementById('conversion-circle');
+            circle.setAttribute('stroke-dasharray', `${conversionRate}, 100`);
+            
+            // Обновляем текст процента
+            document.getElementById('conversion-percent').textContent = `${conversionRate}%`;
+            
+            // Обновляем индикатор изменения
+            const changeElement = document.getElementById('conversion-change');
+            const icon = changeElement.querySelector('i');
+            const span = changeElement.querySelector('span');
+            
+            if (change > 0) {
+            icon.className = 'fas fa-arrow-up mr-1';
+            changeElement.className = 'text-green-500 flex items-center text-sm';
+            } else if (change < 0) {
+            icon.className = 'fas fa-arrow-down mr-1';
+            changeElement.className = 'text-red-500 flex items-center text-sm';
+            } else {
+            icon.className = 'fas fa-minus mr-1';
+            changeElement.className = 'text-gray-500 flex items-center text-sm';
+            }
+            
+            span.textContent = `${Math.abs(change).toFixed(1)}% от прошлого ${this.getPeriodName()}`;
+        },
+        
+        // Загрузка последних заказов
+        async loadRecentOrders() {
+            try {
+            this.showLoading('orders');
+            
+            // Получаем последние заказы
+            const { orders } = await api.getOrders({
+                page: 1,
+                limit: 5,
+                sort: 'order_date:desc'
+            });
+            
+            const tableBody = document.getElementById('orders-table-body');
+            tableBody.innerHTML = '';
+            
+            if (orders.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="5" class="text-center py-4">Нет данных о заказах</td>`;
+                tableBody.appendChild(row);
+            } else {
+                // Заполняем таблицу
+                orders.forEach(order => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                const serviceName = order.services.length > 0 
+                    ? order.services[0].name 
+                    : 'Стандартный монтаж';
+                
+                row.innerHTML = `
+                    <td class="py-4 px-6">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 flex-shrink-0 rounded bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-tools text-gray-500"></i>
+                        </div>
+                        <div class="ml-3">
+                        <p class="text-sm font-medium">${serviceName}</p>
+                        <p class="text-xs text-gray-500">${formatter.date(order.order_date)}</p>
+                        </div>
+                    </div>
+                    </td>
+                    <td class="py-4 px-6">
+                    <p class="text-sm">${order.client.name}</p>
+                    <p class="text-xs text-gray-500">${order.client.phone}</p>
+                    </td>
+                    <td class="py-4 px-6 text-sm">#${order.id}</td>
+                    <td class="py-4 px-6 text-sm font-semibold">${formatter.currency(order.total_price)}</td>
+                    <td class="py-4 px-6">
+                    ${this.getStatusBadge(order.status)}
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+                });
+            }
+            
+            this.hideLoading('orders');
+            document.getElementById('orders-table-container').classList.remove('hidden');
+            } catch (error) {
+            console.error('Ошибка при загрузке заказов:', error);
+            this.showNotification('Ошибка при загрузке заказов', 'error');
+            this.hideLoading('orders');
+            }
+        },
+        
+        // Получение HTML-кода для бейджа статуса
+        getStatusBadge(status) {
+            const statusStyles = {
+            'новый': 'bg-blue-100 text-blue-800',
+            'в работе': 'bg-yellow-100 text-yellow-800',
+            'завершен': 'bg-green-100 text-green-800',
+            'отменен': 'bg-red-100 text-red-800',
+            'default': 'bg-gray-100 text-gray-800'
+            };
+            
+            const style = statusStyles[status] || statusStyles.default;
+            return `<span class="text-xs ${style} rounded-full px-2 py-1">${status}</span>`;
+        },
+        
+        // Инициализация календаря
+        initCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            // Получаем первый день месяца
+            const firstDay = new Date(year, month, 1);
+            // Получаем последний день месяца
+            const lastDay = new Date(year, month + 1, 0);
+            
+            // Определяем, с какого дня недели начинается месяц (0 - воскресенье, 1 - понедельник)
+            let firstWeekday = firstDay.getDay() - 1;
+            if (firstWeekday < 0) firstWeekday = 6; // Воскресенье считаем как 6-й день
+            
+            // Общее количество дней в месяце
+            const daysInMonth = lastDay.getDate();
+            
+            // Настраиваем заголовок календаря
+            const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.querySelector('.bg-white h2.font-bold').textContent = `${monthNames[month]} ${year}`;
+            
+            // Добавляем дни в календарь
+            // Сначала добавляем дни недели (они уже есть в HTML), поэтому начинаем с пустых ячеек
+            
+            // Добавляем пустые ячейки в начале месяца
+            for (let i = 0; i < firstWeekday; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'h-8 w-8 rounded-full';
+            calendarGrid.appendChild(emptyCell);
+            }
+            
+            // Добавляем дни месяца
+            for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('div');
+            
+            // Текущий день выделяем
+            if (day === now.getDate()) {
+                cell.className = 'h-8 w-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium';
+            } else {
+                cell.className = 'h-8 w-8 hover:bg-gray-200 rounded-full flex items-center justify-center cursor-pointer';
+            }
+            
+            cell.textContent = day;
+            calendarGrid.appendChild(cell);
+            
+            // Событие клика на день календаря
+            cell.addEventListener('click', () => {
+                // Здесь можно добавить логику для отображения заказов на выбранный день
+                console.log(`Выбран день: ${day}.${month + 1}.${year}`);
+            });
+            }
+        },
+        
+        // Отображение индикатора загрузки
+        showLoading(section) {
+            const loadingElements = {
+            'stats': document.getElementById('stats-loading'),
+            'chart': document.getElementById('chart-loading'),
+            'orders': document.getElementById('orders-loading')
+            };
+            
+            if (loadingElements[section]) {
+            loadingElements[section].classList.remove('hidden');
+            
+            // Скрываем контейнеры с данными
+            if (section === 'stats') {
+                document.getElementById('stats-cards').classList.add('hidden');
+            } else if (section === 'orders') {
+                document.getElementById('orders-table-container').classList.add('hidden');
+            }
+            }
+        },
+        
+        // Скрытие индикатора загрузки
+        hideLoading(section) {
+            const loadingElements = {
+            'stats': document.getElementById('stats-loading'),
+            'chart': document.getElementById('chart-loading'),
+            'orders': document.getElementById('orders-loading')
+            };
+            
+            if (loadingElements[section]) {
+            loadingElements[section].classList.add('hidden');
+            }
+        },
+        
+        // Отображение уведомления
+        showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            messageElement.textContent = message;
+            
+            // Устанавливаем класс в зависимости от типа уведомления
+            notification.className = `notification ${type}`;
+            
+            // Показываем уведомление
+            notification.classList.add('active');
+            
+            // Скрываем через 3 секунды
+            setTimeout(() => {
+            notification.classList.remove('active');
+            }, 3000);
+        }
+        };
+
+        // Вспомогательная функция для расчета процентного изменения
+        function calculatePercentChange(current, previous) {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+        dashboard.init();
+        });
+    </script>
+</body>
+</html>

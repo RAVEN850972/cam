@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КондCRM - Услуги и товары</title>
+    <!-- Подключаем Tailwind CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <!-- Подключаем Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Подключаем наш файл со стилями -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Боковое меню -->
+        <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold">КондCRM</h1>
+            </div>
+            
+            <nav class="mt-6 flex-1">
+                <a href="/" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="dashboard">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    Дашборд
+                </a>
+                <a href="/orders" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="orders">
+                    <i class="fas fa-shopping-bag mr-3"></i>
+                    Заказы
+                </a>
+                <a href="/clients" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="clients">
+                    <i class="fas fa-users mr-3"></i>
+                    Клиенты
+                </a>
+                <a href="/services" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="services">
+                    <i class="fas fa-briefcase mr-3"></i>
+                    Услуги
+                </a>
+                <a href="/employees" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="employees">
+                    <i class="fas fa-user-check mr-3"></i>
+                    Сотрудники
+                </a>
+                <a href="/salary" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="salary">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    Зарплаты
+                </a>
+                <a href="/finance" class="menu-item active flex items-center px-6 py-3 text-sm" data-page="finance">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Финансы
+                </a>
+                <a href="/export" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="export">
+                    <i class="fas fa-download mr-3"></i>
+                    Экспорт данных
+                </a>
+                <a href="#" class="menu-item flex items-center px-6 py-3 text-sm text-gray-700" data-page="settings">
+                    <i class="fas fa-cog mr-3"></i>
+                    Настройки
+                </a>
+            </nav>
+            
+            <div class="mx-6 mb-6 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold">Обновите до PRO</h3>
+                <p class="text-sm text-gray-600 mt-2">Получите доступ к дополнительным функциям и аналитике</p>
+                <button class="mt-4 bg-blue-600 text-white w-full py-2 rounded font-medium hover:bg-blue-700 transition">
+                    Обновить
+                </button>
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="flex-1 overflow-auto">
+            <!-- Верхняя панель -->
+            <header class="bg-white p-6 flex items-center justify-between border-b sticky top-0 z-10">
+                <h1 class="text-2xl font-bold">Услуги и товары</h1>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Поиск услуг и товаров..."
+                            class="pl-10 pr-4 py-2 border rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="search-input"
+                        />
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                    
+                    <button class="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full" id="notification-btn">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    </button>
+                    
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                        АК
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Фильтры и кнопка добавления -->
+            <div class="p-6 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap gap-4">
+                    <!-- Поиск по названию -->
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Название услуги/товара"
+                            class="border rounded-md py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            id="service-search"
+                        />
+                    </div>
+                    
+                    <!-- Фильтр по категории -->
+                    <div class="relative">
+                        <select id="category-filter" class="border rounded-md py-2 pl-3 pr-10 text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="">Все категории</option>
+                            <option value="Кондиционер">Кондиционеры</option>
+                            <option value="Монтаж">Монтаж</option>
+                            <option value="Доп услуга">Дополнительные услуги</option>
+                            <option value="Сервис">Сервисное обслуживание</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Кнопка применения фильтров -->
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md flex items-center transition" id="apply-filters">
+                        <i class="fas fa-filter mr-2"></i>
+                        Применить
+                    </button>
+                    
+                    <!-- Кнопка сброса фильтров -->
+                    <button class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md flex items-center transition" id="reset-filters">
+                        <i class="fas fa-times mr-2"></i>
+                        Сбросить
+                    </button>
+                </div>
+                
+                <!-- Кнопка добавления новой услуги -->
+                <button class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md flex items-center transition" id="new-service-btn">
+                    <i class="fas fa-plus mr-2"></i>
+                    Новая услуга/товар
+                </button>
+            </div>
+            
+            <!-- Статистика по категориям -->
+            <div class="px-6 pb-4">
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <h2 class="font-bold text-lg mb-4">Распределение по категориям и средние цены</h2>
+                    <div class="flex flex-wrap items-center gap-4" id="category-stats">
+                        <!-- Статистика будет загружена через JavaScript -->
+                        <div class="flex-1 bg-gray-100 h-6 animate-pulse rounded"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Таблица услуг -->
+            <div class="px-6 pb-6">
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <!-- Индикатор загрузки -->
+                    <div id="services-loading" class="loading">
+                        <div class="loader"></div>
+                        <span>Загрузка услуг и товаров...</span>
+                    </div>
+                    
+                    <!-- Контейнер таблицы -->
+                    <div class="overflow-x-auto hidden" id="services-table-container">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 text-gray-600 text-sm">
+                                <tr>
+                                    <th class="text-left py-4 px-6 font-medium">ID</th>
+                                    <th class="text-left py-4 px-6 font-medium">Название</th>
+                                    <th class="text-left py-4 px-6 font-medium">Категория</th>
+                                    <th class="text-left py-4 px-6 font-medium">Закупочная цена</th>
+                                    <th class="text-left py-4 px-6 font-medium">Продажная цена</th>
+                                    <th class="text-left py-4 px-6 font-medium">Маржа</th>
+                                    <th class="text-left py-4 px-6 font-medium">Использований</th>
+                                    <th class="text-left py-4 px-6 font-medium">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y" id="services-table-body">
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Пагинация -->
+                    <div class="flex items-center justify-between px-6 py-4 bg-white border-t">
+                        <div class="text-gray-500 text-sm">
+                            Показаны <span id="shown-services">0</span> из <span id="total-services">0</span> услуг
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            <button class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition" id="prev-page" disabled>
+                                <i class="fas fa-chevron-left mr-1"></i>
+                                Назад
+                            </button>
+                            
+                            <div class="text-gray-700" id="page-info">
+                                Страница <span id="current-page">1</span> из <span id="total-pages">1</span>
+                            </div>
+                            
+                            <button class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition" id="next-page" disabled>
+                                Вперед
+                                <i class="fas fa-chevron-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для создания/редактирования услуги -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="service-modal">
+        <div class="absolute inset-0 bg-black opacity-50" id="service-modal-overlay"></div>
+        
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl z-10 relative">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-bold" id="modal-title">Новая услуга/товар</h2>
+                <button class="text-gray-500 hover:text-gray-700" id="close-service-modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <form id="service-form">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Название*</label>
+                            <input type="text" id="service-name" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Категория*</label>
+                            <select id="service-category" class="border rounded-md py-2 px-3 w-full text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                                <option value="">Выберите категорию</option>
+                                <option value="Кондиционер">Кондиционер</option>
+                                <option value="Монтаж">Монтаж</option>
+                                <option value="Доп услуга">Дополнительная услуга</option>
+                                <option value="Сервис">Сервисное обслуживание</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="power-type-container" class="mb-6 hidden">
+                        <label class="block text-gray-700 font-medium mb-2">Мощность кондиционера*</label>
+                        <select id="service-power-type" class="border rounded-md py-2 px-3 w-full text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="">Выберите мощность</option>
+                            <option value="7 БТЮ">7 БТЮ</option>
+                            <option value="9 БТЮ">9 БТЮ</option>
+                            <option value="12 БТЮ">12 БТЮ</option>
+                            <option value="18 БТЮ">18 БТЮ</option>
+                        </select>
+                        <p class="text-sm text-gray-500 mt-1">Стандартная стоимость монтажа: 10000₽ для 7/9 БТЮ, 12000₽ для 12/18 БТЮ</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Закупочная цена (₽)</label>
+                            <input type="number" id="service-purchase-price" min="0" step="100" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" value="0">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Продажная цена (₽)*</label>
+                            <input type="number" id="service-selling-price" min="0" step="100" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Процент прибыли</label>
+                            <div class="flex items-center">
+                                <input type="number" id="service-profit-margin" min="0" max="100" step="1" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" value="30">
+                                <span class="ml-2">%</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Комиссия монтажнику (₽)</label>
+                            <input type="number" id="service-installer-bonus" min="0" step="50" class="border rounded-md py-2 px-3 w-full text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400" value="250">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="service-manager-bonus" class="mr-2">
+                            <label for="service-manager-bonus" class="text-gray-700">Включает комиссию менеджеру</label>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Если услуга включает комиссию менеджеру, менеджер получит 30% от прибыли с этой услуги</p>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition" id="cancel-service">
+                    Отмена
+                </button>
+                <button type="button" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition" id="save-service">
+                    Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно для просмотра информации об услуге -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="service-info-modal">
+        <div class="absolute inset-0 bg-black opacity-50" id="service-info-modal-overlay"></div>
+        
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl z-10 relative">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xl font-bold" id="service-info-title">Информация об услуге</h2>
+                <button class="text-gray-500 hover:text-gray-700" id="close-service-info-modal">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Информация об услуге -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <h3 class="font-bold text-lg mb-4">Основная информация</h3>
+                        <table class="w-full">
+                            <tr>
+                                <td class="py-2 text-gray-600">ID:</td>
+                                <td class="py-2" id="info-service-id">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Название:</td>
+                                <td class="py-2" id="info-service-name">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Категория:</td>
+                                <td class="py-2" id="info-service-category">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Мощность:</td>
+                                <td class="py-2" id="info-service-power-type">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Дата создания:</td>
+                                <td class="py-2" id="info-service-created">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-bold text-lg mb-4">Финансовая информация</h3>
+                        <table class="w-full">
+                            <tr>
+                                <td class="py-2 text-gray-600">Закупочная цена:</td>
+                                <td class="py-2" id="info-service-purchase-price">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Продажная цена:</td>
+                                <td class="py-2" id="info-service-selling-price">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Прибыль:</td>
+                                <td class="py-2" id="info-service-profit">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Маржа:</td>
+                                <td class="py-2" id="info-service-margin">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Комиссия монтажнику:</td>
+                                <td class="py-2" id="info-service-installer-bonus">-</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 text-gray-600">Комиссия менеджеру:</td>
+                                <td class="py-2" id="info-service-manager-bonus">-</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Статистика использования -->
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Статистика использования</h3>
+                    <div class="flex items-center space-x-6 mb-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-blue-600" id="info-service-usage">0</div>
+                            <div class="text-sm text-gray-500">Всего заказов</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-600" id="info-service-revenue">₽ 0</div>
+                            <div class="text-sm text-gray-500">Общая выручка</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-indigo-600" id="info-service-profit-total">₽ 0</div>
+                            <div class="text-sm text-gray-500">Общая прибыль</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button type="button" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md transition" id="edit-service-btn">
+                    <i class="fas fa-edit mr-2"></i>
+                    Редактировать
+                </button>
+                <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition" id="close-info-modal">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно подтверждения удаления -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center hidden" id="confirm-modal">
+        <div class="absolute inset-0 bg-black opacity-50" id="confirm-modal-overlay"></div>
+        
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md z-10 relative">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4">Подтверждение</h2>
+                <p id="confirm-message">Вы уверены, что хотите удалить эту услугу?</p>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md transition" id="cancel-confirm">
+                    Отмена
+                </button>
+                <button type="button" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition" id="confirm-action">
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div id="notification" class="notification">
+        <span id="notification-message"></span>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="./js/api.js"></script>
+    <script src="./js/ui.js"></script>
+    
+    <!-- JavaScript для страницы услуг -->
+    <script>
+        // API client для работы с услугами и товарами
+        const api = {
+        baseUrl: 'http://localhost:8000/api',
+        
+        async get(endpoint, params = {}) {
+            try {
+            const url = new URL(`${this.baseUrl}/${endpoint}`);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+            } catch (error) {
+            console.error(`API Error (GET ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        async post(endpoint, data) {
+            try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+            } catch (error) {
+            console.error(`API Error (POST ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        async put(endpoint, data) {
+            try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+            } catch (error) {
+            console.error(`API Error (PUT ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        async delete(endpoint) {
+            try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            
+            return await response.json();
+            } catch (error) {
+            console.error(`API Error (DELETE ${endpoint}):`, error);
+            throw error;
+            }
+        },
+        
+        // Методы для работы с услугами
+        async getServices(params = {}) {
+            return this.get('services', params);
+        },
+        
+        async getService(id) {
+            return this.get(`services/${id}`);
+        },
+        
+        async createService(data) {
+            return this.post('services', data);
+        },
+        
+        async updateService(id, data) {
+            return this.put(`services/${id}`, data);
+        },
+        
+        async deleteService(id) {
+            return this.delete(`services/${id}`);
+        },
+        
+        // Получение статистики по категориям
+        async getCategoryStats() {
+            return this.get('services/stats/by-category');
+        }
+        };
+
+        // Утилиты для форматирования и работы с данными
+        const utils = {
+        // Форматирование валюты
+        formatCurrency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+            style: 'currency',
+            currency: 'RUB',
+            maximumFractionDigits: 0
+            }).format(value);
+        },
+        
+        // Форматирование даты
+        formatDate(dateString) {
+            if (!dateString) return '-';
+            return new Date(dateString).toLocaleDateString('ru-RU');
+        },
+        
+        // Расчет процента прибыли
+        calculateMargin(purchasePrice, sellingPrice) {
+            if (!purchasePrice || purchasePrice <= 0) return '-';
+            
+            const profit = sellingPrice - purchasePrice;
+            return Math.round((profit / purchasePrice) * 100);
+        },
+        
+        // Расчет прибыли
+        calculateProfit(purchasePrice, sellingPrice) {
+            return sellingPrice - purchasePrice;
+        }
+        };
+
+        // Модуль для управления пользовательским интерфейсом
+        const ui = {
+        // Инициализация UI компонентов
+        init() {
+            this.setupEventListeners();
+            this.loadInitialData();
+        },
+        
+        // Настройка обработчиков событий
+        setupEventListeners() {
+            // Фильтры и поиск
+            document.getElementById('apply-filters').addEventListener('click', () => {
+            servicesModule.currentPage = 1;
+            servicesModule.loadServices();
+            });
+            
+            document.getElementById('reset-filters').addEventListener('click', () => {
+            document.getElementById('service-search').value = '';
+            document.getElementById('category-filter').value = '';
+            servicesModule.currentPage = 1;
+            servicesModule.loadServices();
+            });
+            
+            // Поиск в хедере
+            document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('service-search').value = e.target.value;
+                servicesModule.currentPage = 1;
+                servicesModule.loadServices();
+            }
+            });
+            
+            // Пагинация
+            document.getElementById('prev-page').addEventListener('click', () => {
+            if (servicesModule.currentPage > 1) {
+                servicesModule.currentPage--;
+                servicesModule.loadServices();
+            }
+            });
+            
+            document.getElementById('next-page').addEventListener('click', () => {
+            if (servicesModule.currentPage < servicesModule.totalPages) {
+                servicesModule.currentPage++;
+                servicesModule.loadServices();
+            }
+            });
+            
+            // Кнопка создания новой услуги
+            document.getElementById('new-service-btn').addEventListener('click', () => {
+            this.openServiceModal();
+            });
+            
+            // Обработчики для модального окна услуги
+            document.getElementById('close-service-modal').addEventListener('click', this.closeServiceModal);
+            document.getElementById('service-modal-overlay').addEventListener('click', this.closeServiceModal);
+            document.getElementById('cancel-service').addEventListener('click', this.closeServiceModal);
+            document.getElementById('save-service').addEventListener('click', servicesModule.saveService);
+            
+            // Обработчики для модального окна информации
+            document.getElementById('close-service-info-modal').addEventListener('click', this.closeServiceInfoModal);
+            document.getElementById('service-info-modal-overlay').addEventListener('click', this.closeServiceInfoModal);
+            document.getElementById('close-info-modal').addEventListener('click', this.closeServiceInfoModal);
+            document.getElementById('edit-service-btn').addEventListener('click', () => {
+            this.closeServiceInfoModal();
+            this.openServiceModal(servicesModule.currentServiceId);
+            });
+            
+            // Обработчики для модального окна подтверждения
+            document.getElementById('cancel-confirm').addEventListener('click', this.closeConfirmModal);
+            document.getElementById('confirm-modal-overlay').addEventListener('click', this.closeConfirmModal);
+            document.getElementById('confirm-action').addEventListener('click', servicesModule.deleteService);
+            
+            // Обработка изменения категории в форме
+            document.getElementById('service-category').addEventListener('change', this.handleCategoryChange);
+        },
+        
+        // Загрузка начальных данных
+        loadInitialData() {
+            servicesModule.loadServices();
+            servicesModule.loadCategoryStats();
+        },
+        
+        // Обработчик изменения категории в форме
+        handleCategoryChange() {
+            const category = document.getElementById('service-category').value;
+            const powerTypeContainer = document.getElementById('power-type-container');
+            
+            if (category === 'Кондиционер') {
+            powerTypeContainer.classList.remove('hidden');
+            } else {
+            powerTypeContainer.classList.add('hidden');
+            }
+        },
+        
+        // Открытие модального окна для создания/редактирования услуги
+        async openServiceModal(serviceId = null) {
+            try {
+            // Сбрасываем форму
+            document.getElementById('service-form').reset();
+            document.getElementById('power-type-container').classList.add('hidden');
+            
+            // Устанавливаем ID текущей услуги
+            servicesModule.currentServiceId = serviceId;
+            
+            if (serviceId) {
+                // Редактирование существующей услуги
+                document.getElementById('modal-title').textContent = 'Редактирование услуги';
+                
+                // Показываем индикатор загрузки
+                this.showNotification('Загрузка данных услуги...', 'info');
+                
+                // Загружаем данные услуги
+                const service = await api.getService(serviceId);
+                
+                if (service) {
+                // Заполняем форму данными услуги
+                document.getElementById('service-name').value = service.name;
+                document.getElementById('service-category').value = service.category;
+                
+                // Если это кондиционер, показываем поле выбора мощности
+                if (service.category === 'Кондиционер') {
+                    document.getElementById('power-type-container').classList.remove('hidden');
+                    document.getElementById('service-power-type').value = service.power_type || '';
+                }
+                
+                document.getElementById('service-purchase-price').value = service.purchase_price;
+                document.getElementById('service-selling-price').value = service.selling_price;
+                document.getElementById('service-profit-margin').value = Math.round(service.profit_margin_percent * 100);
+                document.getElementById('service-installer-bonus').value = service.installer_bonus_fixed;
+                document.getElementById('service-manager-bonus').checked = service.is_manager_bonus;
+                }
+            } else {
+                // Создание новой услуги
+                document.getElementById('modal-title').textContent = 'Новая услуга/товар';
+            }
+            
+            // Открываем модальное окно
+            document.getElementById('service-modal').classList.remove('hidden');
+            
+            } catch (error) {
+            console.error('Ошибка при открытии модального окна:', error);
+            this.showNotification('Ошибка при загрузке данных услуги', 'error');
+            }
+        },
+        
+        // Закрытие модального окна услуги
+        closeServiceModal() {
+            document.getElementById('service-modal').classList.add('hidden');
+        },
+        
+        // Открытие модального окна с информацией об услуге
+        async openServiceInfoModal(serviceId) {
+            try {
+            // Сохраняем ID услуги
+            servicesModule.currentServiceId = serviceId;
+            
+            // Показываем индикатор загрузки
+            this.showNotification('Загрузка информации...', 'info');
+            
+            // Загружаем детальную информацию об услуге
+            const service = await api.getService(serviceId);
+            
+            if (!service) {
+                this.showNotification('Услуга не найдена', 'error');
+                return;
+            }
+            
+            // Заполняем данные услуги
+            document.getElementById('service-info-title').textContent = `Информация об услуге: ${service.name}`;
+            document.getElementById('info-service-id').textContent = service.id;
+            document.getElementById('info-service-name').textContent = service.name;
+            document.getElementById('info-service-category').textContent = service.category;
+            document.getElementById('info-service-power-type').textContent = service.power_type || '-';
+            document.getElementById('info-service-created').textContent = utils.formatDate(service.created_at);
+            
+            // Заполняем финансовую информацию
+            document.getElementById('info-service-purchase-price').textContent = utils.formatCurrency(service.purchase_price);
+            document.getElementById('info-service-selling-price').textContent = utils.formatCurrency(service.selling_price);
+            
+            const profit = utils.calculateProfit(service.purchase_price, service.selling_price);
+            document.getElementById('info-service-profit').textContent = utils.formatCurrency(profit);
+            
+            const margin = utils.calculateMargin(service.purchase_price, service.selling_price);
+            document.getElementById('info-service-margin').textContent = typeof margin === 'number' ? `${margin}%` : margin;
+            
+            document.getElementById('info-service-installer-bonus').textContent = utils.formatCurrency(service.installer_bonus_fixed);
+            document.getElementById('info-service-manager-bonus').textContent = service.is_manager_bonus ? 'Да (30% от прибыли)' : 'Нет';
+            
+            // Рассчитываем общую прибыль от услуги
+            const total_usage = service.total_usage || 0;
+            const total_revenue = total_usage * service.selling_price;
+            const total_profit = total_usage * profit;
+            
+            // Заполняем статистику использования
+            document.getElementById('info-service-usage').textContent = total_usage;
+            document.getElementById('info-service-revenue').textContent = utils.formatCurrency(total_revenue);
+            document.getElementById('info-service-profit-total').textContent = utils.formatCurrency(total_profit);
+            
+            // Открываем модальное окно
+            document.getElementById('service-info-modal').classList.remove('hidden');
+            
+            } catch (error) {
+            console.error('Ошибка при открытии информации об услуге:', error);
+            this.showNotification('Ошибка при загрузке данных услуги', 'error');
+            }
+        },
+        
+        // Закрытие модального окна информации об услуге
+        closeServiceInfoModal() {
+            document.getElementById('service-info-modal').classList.add('hidden');
+        },
+        
+        // Открытие модального окна подтверждения
+        openConfirmModal(serviceId) {
+            // Сохраняем ID услуги
+            servicesModule.currentServiceId = serviceId;
+            
+            // Устанавливаем сообщение
+            document.getElementById('confirm-message').textContent = `Вы уверены, что хотите удалить услугу #${serviceId}?`;
+            
+            // Открываем модальное окно
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        },
+        
+        // Закрытие модального окна подтверждения
+        closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        },
+        
+        // Обновление таблицы услуг
+        updateServicesTable(services) {
+            const tableBody = document.getElementById('services-table-body');
+            tableBody.innerHTML = '';
+            
+            if (services.length === 0) {
+            const row = document.createElement('tr');
+            row.innerHTML = '<td colspan="8" class="py-4 px-6 text-center text-gray-500">Услуги не найдены</td>';
+            tableBody.appendChild(row);
+            return;
+            }
+            
+            services.forEach(service => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            row.dataset.id = service.id;
+            
+            // Рассчитываем маржу
+            const profit = utils.calculateProfit(service.purchase_price, service.selling_price);
+            const margin = utils.calculateMargin(service.purchase_price, service.selling_price);
+            
+            row.innerHTML = `
+                <td class="py-4 px-6">${service.id}</td>
+                <td class="py-4 px-6">
+                ${service.name}
+                ${service.power_type ? `<span class="text-sm text-gray-500 block">${service.power_type}</span>` : ''}
+                </td>
+                <td class="py-4 px-6">
+                <span class="px-2 py-1 bg-gray-100 rounded text-gray-800">${service.category}</span>
+                </td>
+                <td class="py-4 px-6">${utils.formatCurrency(service.purchase_price)}</td>
+                <td class="py-4 px-6 font-medium">${utils.formatCurrency(service.selling_price)}</td>
+                <td class="py-4 px-6">${margin}${typeof margin === 'number' ? '%' : ''}</td>
+                <td class="py-4 px-6">
+                <span class="font-medium ${service.total_usage > 0 ? 'text-green-600' : 'text-gray-500'}">${service.total_usage || 0}</span>
+                </td>
+                <td class="py-4 px-6">
+                <div class="flex space-x-2">
+                    <button class="text-blue-600 hover:text-blue-800 view-service" data-id="${service.id}">
+                    <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="text-yellow-600 hover:text-yellow-800 edit-service" data-id="${service.id}">
+                    <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-600 hover:text-red-800 delete-service" data-id="${service.id}">
+                    <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+            });
+            
+            // Добавляем обработчики для кнопок
+            this.setupActionButtons();
+        },
+        
+        // Настройка обработчиков для кнопок действий в таблице
+        setupActionButtons() {
+            // Кнопки просмотра
+            document.querySelectorAll('.view-service').forEach(button => {
+            button.addEventListener('click', () => {
+                const serviceId = button.dataset.id;
+                this.openServiceInfoModal(serviceId);
+            });
+            });
+            
+            // Кнопки редактирования
+            document.querySelectorAll('.edit-service').forEach(button => {
+            button.addEventListener('click', () => {
+                const serviceId = button.dataset.id;
+                this.openServiceModal(serviceId);
+            });
+            });
+            
+            // Кнопки удаления
+            document.querySelectorAll('.delete-service').forEach(button => {
+            button.addEventListener('click', () => {
+                const serviceId = button.dataset.id;
+                this.openConfirmModal(serviceId);
+            });
+            });
+        },
+        
+        // Обновление статистики по категориям
+        updateCategoryStats(stats) {
+            const statsContainer = document.getElementById('category-stats');
+            statsContainer.innerHTML = '';
+            
+            // Формируем цвета для разных категорий
+            const colors = {
+            'Кондиционер': 'bg-blue-100 text-blue-800',
+            'Монтаж': 'bg-green-100 text-green-800',
+            'Доп услуга': 'bg-purple-100 text-purple-800',
+            'Сервис': 'bg-yellow-100 text-yellow-800'
+            };
+            
+            // Создаем карточки для каждой категории
+            Object.entries(stats).forEach(([category, data]) => {
+            const card = document.createElement('div');
+            card.className = `p-4 rounded-lg ${colors[category] || 'bg-gray-100 text-gray-800'}`;
+            
+            card.innerHTML = `
+                <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-lg">${category}</h3>
+                    <div class="text-sm opacity-75">Средняя цена: ${utils.formatCurrency(data.avg_price)}</div>
+                </div>
+                <div class="text-2xl font-bold">${data.count}</div>
+                </div>
+            `;
+            
+            statsContainer.appendChild(card);
+            });
+        },
+        
+        // Обновление информации о пагинации
+        updatePagination(currentPage, totalPages, totalItems, itemsOnPage) {
+            document.getElementById('current-page').textContent = currentPage;
+            document.getElementById('total-pages').textContent = totalPages;
+            document.getElementById('shown-services').textContent = itemsOnPage;
+            document.getElementById('total-services').textContent = totalItems;
+            
+            document.getElementById('prev-page').disabled = currentPage <= 1;
+            document.getElementById('next-page').disabled = currentPage >= totalPages;
+        },
+        
+        // Показать/скрыть индикатор загрузки
+        toggleLoading(show) {
+            const loadingElement = document.getElementById('services-loading');
+            const tableContainer = document.getElementById('services-table-container');
+            
+            if (show) {
+            loadingElement.classList.remove('hidden');
+            tableContainer.classList.add('hidden');
+            } else {
+            loadingElement.classList.add('hidden');
+            tableContainer.classList.remove('hidden');
+            }
+        },
+        
+        // Отображение уведомления
+        showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const messageElement = document.getElementById('notification-message');
+            
+            messageElement.textContent = message;
+            
+            // Устанавливаем класс в зависимости от типа уведомления
+            notification.className = `notification ${type}`;
+            
+            // Показываем уведомление
+            notification.classList.add('active');
+            
+            // Скрываем через 3 секунды
+            setTimeout(() => {
+            notification.classList.remove('active');
+            }, 3000);
+        }
+        };
+
+        // Основной модуль для работы с услугами
+        const servicesModule = {
+        // Состояние
+        currentPage: 1,
+        totalPages: 1,
+        pageSize: 20,
+        currentServiceId: null,
+        
+        // Загрузка списка услуг
+        async loadServices() {
+            try {
+            // Показываем индикатор загрузки
+            ui.toggleLoading(true);
+            
+            // Собираем параметры фильтрации
+            const search = document.getElementById('service-search').value;
+            const category = document.getElementById('category-filter').value;
+            
+            // Формируем параметры запроса
+            const params = {
+                page: this.currentPage,
+                limit: this.pageSize
+            };
+            
+            if (search) params.search = search;
+            if (category) params.category = category;
+            
+            // Загружаем данные с API
+            const data = await api.getServices(params);
+            
+            // Обновляем состояние пагинации
+            this.totalPages = data.total_pages || 1;
+            
+            // Обновляем UI
+            ui.updateServicesTable(data.services);
+            ui.updatePagination(this.currentPage, this.totalPages, data.total_count, data.services.length);
+            ui.toggleLoading(false);
+            
+            } catch (error) {
+            console.error('Ошибка при загрузке услуг:', error);
+            ui.showNotification('Ошибка при загрузке данных', 'error');
+            ui.toggleLoading(false);
+            }
+        },
+        
+        // Загрузка статистики по категориям
+        async loadCategoryStats() {
+            try {
+            const data = await api.getCategoryStats();
+            ui.updateCategoryStats(data);
+            } catch (error) {
+            console.error('Ошибка при загрузке статистики:', error);
+            ui.showNotification('Ошибка при загрузке статистики', 'error');
+            }
+        },
+        
+        // Сохранение услуги (создание или обновление)
+        async saveService() {
+            try {
+            // Проверяем заполнение обязательных полей
+            const name = document.getElementById('service-name').value;
+            const category = document.getElementById('service-category').value;
+            const sellingPrice = document.getElementById('service-selling-price').value;
+            
+            if (!name || !category || !sellingPrice) {
+                ui.showNotification('Пожалуйста, заполните все обязательные поля', 'error');
+                return;
+            }
+            
+            // Проверяем выбор мощности для кондиционеров
+            if (category === 'Кондиционер') {
+                const powerType = document.getElementById('service-power-type').value;
+                if (!powerType) {
+                ui.showNotification('Пожалуйста, укажите мощность кондиционера', 'error');
+                return;
+                }
+            }
+            
+            // Собираем данные формы
+            const formData = {
+                name: name,
+                category: category,
+                power_type: category === 'Кондиционер' ? document.getElementById('service-power-type').value : null,
+                purchase_price: parseFloat(document.getElementById('service-purchase-price').value) || 0,
+                selling_price: parseFloat(sellingPrice),
+                profit_margin_percent: parseFloat(document.getElementById('service-profit-margin').value) / 100,
+                installer_bonus_fixed: parseFloat(document.getElementById('service-installer-bonus').value) || 0,
+                is_manager_bonus: document.getElementById('service-manager-bonus').checked
+            };
+            
+            // Показываем уведомление о сохранении
+            ui.showNotification('Сохранение данных...', 'info');
+            
+            let response;
+            
+            if (servicesModule.currentServiceId) {
+                // Обновление существующей услуги
+                response = await api.updateService(servicesModule.currentServiceId, formData);
+                ui.showNotification(`Услуга #${servicesModule.currentServiceId} успешно обновлена`);
+            } else {
+                // Создание новой услуги
+                response = await api.createService(formData);
+                ui.showNotification('Новая услуга успешно создана');
+            }
+            
+            // Закрываем модальное окно
+            ui.closeServiceModal();
+            
+            // Обновляем список услуг и статистику
+            servicesModule.loadServices();
+            servicesModule.loadCategoryStats();
+            
+            } catch (error) {
+            console.error('Ошибка при сохранении услуги:', error);
+            ui.showNotification('Ошибка при сохранении услуги', 'error');
+            }
+        },
+        
+        // Удаление услуги
+        async deleteService() {
+            try {
+            if (!servicesModule.currentServiceId) {
+                ui.showNotification('Ошибка: ID услуги не указан', 'error');
+                return;
+            }
+            
+            // Проверяем, используется ли услуга в заказах
+            const service = await api.getService(servicesModule.currentServiceId);
+            
+            if (service && service.total_usage > 0) {
+                ui.showNotification('Невозможно удалить услугу, которая используется в заказах', 'error');
+                ui.closeConfirmModal();
+                return;
+            }
+            
+            // Показываем уведомление о удалении
+            ui.showNotification('Удаление услуги...', 'info');
+            
+            // Отправляем запрос на удаление
+            await api.deleteService(servicesModule.currentServiceId);
+            
+            // Закрываем модальное окно подтверждения
+            ui.closeConfirmModal();
+            
+            // Обновляем список услуг и статистику
+            servicesModule.loadServices();
+            servicesModule.loadCategoryStats();
+            
+            // Показываем уведомление об успешном удалении
+            ui.showNotification(`Услуга #${servicesModule.currentServiceId} успешно удалена`);
+            
+            } catch (error) {
+            console.error('Ошибка при удалении услуги:', error);
+            ui.showNotification('Ошибка при удалении услуги', 'error');
+            }
+        }
+        };
+
+        // Инициализация страницы при загрузке документа
+        document.addEventListener('DOMContentLoaded', () => {
+        ui.init();
+        });
+    </script>
+</body>
+</html>

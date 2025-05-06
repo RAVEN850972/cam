@@ -1,0 +1,107 @@
+/* Основные стили карточек */
+.stat-card-dark {
+    background-color: #1f2937;
+    color: white;
+}
+.stat-card {
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Стили навигации */
+.menu-item {
+    transition: all 0.2s ease;
+}
+.menu-item:hover {
+    background-color: #f3f4f6;
+}
+.menu-item.active {
+    border-right: 4px solid #2563eb;
+    background-color: #eff6ff;
+    color: #2563eb;
+}
+
+/* Стили статусов */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.status-paid {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+.status-processing {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+.status-completed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+/* Стили графиков и анимаций */
+.chart-bar {
+    transition: height 1s ease-in-out;
+}
+
+/* Индикаторы загрузки */
+.loader {
+    border: 3px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 3px solid #3498db;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+.hidden {
+    display: none;
+}
+
+/* Стили уведомлений */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 0;
+}
+.notification-success {
+    background-color: #d1fae5;
+    border-left: 4px solid #10b981;
+    color: #065f46;
+}
+.notification-error {
+    background-color: #fee2e2;
+    border-left: 4px solid #ef4444;
+    color: #b91c1c;
+}
+.notification-show {
+    opacity: 1;
+}

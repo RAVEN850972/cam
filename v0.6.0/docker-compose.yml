@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  aircon-crm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aircon-crm
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:///data/aircon_crm.db
+      - DEBUG=False
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"] 
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Опциональный nginx для проксирования запросов (раскомментируйте при необходимости)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: aircon-crm-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/conf.d:/etc/nginx/conf.d
+  #     - ./nginx/logs:/var/log/nginx
+  #   depends_on:
+  #     - aircon-crm
+
+volumes:
+  data:
